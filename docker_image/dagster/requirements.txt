@@ -1,0 +1,5 @@
+dagster==1.2.7
+dagit==1.2.7
+dagster-postgres==0.18.7
+dagster-dbt==0.18.7
+dagster-docker
