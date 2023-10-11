@@ -90,69 +90,16 @@ services:
     networks:
       - data_network
 
-  # spark-master:
-  #   build:
-  #     context: ./docker_image/spark
-  #     dockerfile: ./Dockerfile
-  #   container_name: spark-master
-  #   ports:
-  #     - "7077:7077"  # Spark master port
-  #     - "8081:8080"  # Spark master web UI port 
-  #   environment:
-  #     - SPARK_MODE=master
-  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
-  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
-  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-  #     - SPARK_SSL_ENABLED=no
-  #     - SPARK_USER=spark
-  #     - SPARK_LOCAL_IP=spark-master #edit
-  #   expose:
-  #     - "7077"
-  #   volumes:
-  #     # - ".:/opt/spark/"
-  #     - ./docker_image/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-  #   networks:
-  #     - data_network
 
-  # spark-worker-1:
-  #   image: docker.io/bitnami/spark:3.3.2
-  #   container_name: "spark-worker-1"
-  #   environment:
-  #     - SPARK_MODE=worker
-  #     - SPARK_MASTER_URL=spark://spark-master:7077
-  #     - SPARK_WORKER_MEMORY=1G
-  #     - SPARK_WORKER_CORES=1
-  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
-  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
-  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-  #     - SPARK_SSL_ENABLED=no
-  #     - SPARK_USER=spark
-  #   # ports:
-  #   #   - "8081:8081"  # Spark master web UI port
-  #   depends_on:
-  #     - spark-master
-  #   networks:
-  #     - data_network
-
-  # spark-worker-2:
-  #   image: docker.io/bitnami/spark:3.3
-  #   container_name: "spark-worker-2"
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - spark-master
-  #   networks:
-  #     - data_network
-
-  # metabase:
-  #   image: metabase/metabase:latest
-  #   container_name: "metabase"
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - data_network
+  metabase:
+    image: metabase/metabase:latest
+    container_name: "metabase"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    networks:
+      - data_network
   
   mysql:
     image: mysql:8.0

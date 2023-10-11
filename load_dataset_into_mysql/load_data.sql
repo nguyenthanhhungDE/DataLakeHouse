@@ -15,7 +15,7 @@ LOAD DATA local INFILE '/tmp/dataset/olist_order_items_dataset.csv'
 INTO TABLE order_items FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
-LOAD DATA local INFILE '/tmp/dataset\olist_order_payments_dataset.csv'
+LOAD DATA local INFILE '/tmp/dataset/olist_order_payments_dataset.csv'
 INTO TABLE payments FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
