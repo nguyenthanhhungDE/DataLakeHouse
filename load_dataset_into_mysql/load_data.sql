@@ -1,3 +1,10 @@
+LOAD DATA local INFILE '/tmp/dataset/product_category_name_translation.csv'
+INTO TABLE product_category_name_translation FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA local INFILE '/tmp/dataset/olist_sellers_dataset.csv'
+INTO TABLE sellers FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
 
 LOAD DATA local INFILE '/tmp/dataset/olist_customers_dataset.csv'
 INTO TABLE customers FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\n'
