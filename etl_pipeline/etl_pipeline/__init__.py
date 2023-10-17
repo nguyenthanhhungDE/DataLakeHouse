@@ -5,7 +5,7 @@ from dagster import Definitions, load_assets_from_modules
 from . import assets
 from .resources.minio_io_manager import MinIOIOManager
 from .resources.mysql_io_manager import MySQLIOManager
-
+from .resources.spark_io_manager import SparkIOManager
 
 
 MYSQL_CONFIG = {
@@ -25,7 +25,7 @@ MINIO_CONFIG = {
 }
 
 SPARK_CONFIG = {
-    "spark_master": os.getenv(""),
+    "spark_master": os.getenv("spark://spark-master:7077"),
     "endpoint_url": os.getenv("MINIO_ENDPOINT"),
     "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
     "minio_secret_key": os.getenv("SPARK_MASTER_URL")
@@ -33,7 +33,8 @@ SPARK_CONFIG = {
 
 resources = {
     "mysql_io_manager": MySQLIOManager(MYSQL_CONFIG),
-    "minio_io_manager": MinIOIOManager(MINIO_CONFIG)
+    "minio_io_manager": MinIOIOManager(MINIO_CONFIG),
+    "spark_io_manager": SparkIOManager(SPARK_CONFIG)
 } 
 
 defs = Definitions(
