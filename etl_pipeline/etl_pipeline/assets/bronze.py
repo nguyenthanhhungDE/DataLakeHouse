@@ -11,7 +11,7 @@ LAYER = "bronze"
     description="Load table 'customers' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "customer"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -37,7 +37,7 @@ def bronze_customer(context) -> Output[pl.DataFrame]:
     description="Load table 'sellers' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "sellers"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -63,7 +63,7 @@ def bronze_sellers(context) -> Output[pl.DataFrame]:
     description="Load table 'products' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "products"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -89,7 +89,7 @@ def bronze_products(context) -> Output[pl.DataFrame]:
     description="Load table 'orders' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "orders"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -115,7 +115,7 @@ def bronze_orders(context) -> Output[pl.DataFrame]:
     description="Load table 'order_items' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "orderitems"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -141,7 +141,7 @@ def bronze_order_items(context) -> Output[pl.DataFrame]:
     description="Load table 'payments' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "payments"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -167,7 +167,7 @@ def bronze_payments(context) -> Output[pl.DataFrame]:
     description="Load table 'order_reviews' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "orderreviews"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -193,7 +193,7 @@ def bronze_order_reviews(context) -> Output[pl.DataFrame]:
     description="Load table 'product_category_name_translation' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "lakehouse"],
+    key_prefix=["bronze", "productcategoryname"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
