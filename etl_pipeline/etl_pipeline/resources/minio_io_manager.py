@@ -85,4 +85,29 @@ class MinIOIOManager(IOManager):
             raise e
 
     def load_input(self, context: InputContext):
-        pass
+        """
+           Prepares input and downloads parquet file from MinIO and convert to Polars Dataframe 
+        """
+
+        bucket_name = self._config.get("bucket")
+        key_name, tmp_file_path = self._get_path(context)
+
+        try:
+            with connect_minio(self._config) as client:
+
+                # Make bucket if not exists
+                make_bucket(client, bucket_name)
+
+                # Ex: bucket_name: lakehouse
+                # key_name: bronze/stock/stocks.parquet
+                # tmp_file_path: /tmp/file_bronze_stock_bronze_stocks_xxxxxxxxx.parquet
+                context.log.info(f"(MinIO load_input) from key_name: {key_name}")
+                client.fget_object(bucket_name, key_name, tmp_file_path)
+                df_data = pl.read_parquet(tmp_file_path)
+                context.log.info(
+                    f"(MinIO load_input) Got polars dataframe with shape: {df_data.shape}"
+                )
+                os.remove(tmp_file_path)
+                return df_data
+        except Exception as e:
+            raise e
