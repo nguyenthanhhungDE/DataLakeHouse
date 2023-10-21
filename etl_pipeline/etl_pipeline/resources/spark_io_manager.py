@@ -12,10 +12,6 @@ def get_spark_session(config, run_id="Spark IO Manager"):
         spark = (
             SparkSession.builder.master("spark://spark-master:7077")
             .appName(run_id)
-            .config("spark.driver.memory", "4g")
-            .config("spark.executor.memory", executor_memory)
-            .config("spark.cores.max", "4")
-            .config("spark.executor.cores", "2")
             .config(
                 "spark.jars",
                 "/usr/local/spark/jars/delta-core_2.12-2.2.0.jar,/usr/local/spark/jars/hadoop-aws-3.3.2.jar,/usr/local/spark/jars/delta-storage-2.2.0.jar,/usr/local/spark/jars/aws-java-sdk-1.12.367.jar,/usr/local/spark/jars/s3-2.18.41.jar,/usr/local/spark/jars/aws-java-sdk-bundle-1.11.1026.jar",
@@ -46,7 +42,7 @@ class SparkIOManager(IOManager):
     def __init__(self, config):
         self._config = config
 
-    def handle_output(self, context: "OutputContext", obj: DataFrame):
+    def handle_output(self, context: OutputContext, obj: DataFrame):
         """
         Write output to s3a (aka minIO) as parquet file
         """
@@ -56,6 +52,7 @@ class SparkIOManager(IOManager):
         # E.g file_path: s3a://lakehouse/silver/goodreads/book/book_2021.parquet
         # Or file_path: s3a://lakehouse/silver/goodreads/book.parquet if full load
         file_path = "s3a://lakehouse/" + "/".join(context.asset_key.path)
+        # context.log.info(file_path)
         if context.has_partition_key:
             file_path += f"/book_{context.partition_key}"
         file_path += ".parquet"
@@ -69,7 +66,7 @@ class SparkIOManager(IOManager):
         except Exception as e:
             raise Exception(f"(Spark handle_output) Error while writing output: {e}")
 
-    def load_input(self, context: "InputContext") -> DataFrame:
+    def load_input(self, context: InputContext) -> DataFrame:
         """
         Load input from s3a (aka minIO) from parquet file to spark.sql.DataFrame
         """
