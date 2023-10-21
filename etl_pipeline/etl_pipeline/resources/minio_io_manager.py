@@ -39,9 +39,10 @@ class MinIOIOManager(IOManager):
         # context.asset_key.path: ['bronze', 'schema_name', 'table_name']
         layer, schema, table = context.asset_key.path
 
+        context.log.debug(context.asset_key.path)
         # note: bronze/schema_name/table_name
         key = "/".join([layer, schema, table.replace(f"{layer}_", "")])
-
+        context.log.debug(key)
         # note: /tmp/file_bronze_schema_table_xxxxxxx.parquet
         tmp_file_path = "/tmp/file_{}_{}.parquet".format(
             "_".join(context.asset_key.path), datetime.today().strftime("%Y%m%d%H%M%S")
