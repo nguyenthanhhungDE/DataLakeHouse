@@ -29,8 +29,10 @@ def get_spark_session(config, run_id="Spark IO Manager"):
             .config(
                 "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
             )
-            .config("spark.sql.execution.arrow.pyspark.enabled", "true")
-            .config("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+            .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider')
+            .config('spark.sql.warehouse.dir', f's3a://lakehouse/')
+            .config("hive.metastore.uris", "thrift://hive-metastore:9083")
+            .enableHiveSupport()
             .getOrCreate()
         )
         yield spark
@@ -44,25 +46,16 @@ class SparkIOManager(IOManager):
 
     def handle_output(self, context: OutputContext, obj: DataFrame):
         """
-        Write output to s3a (aka minIO) as parquet file
+            Write output to s3a (aka minIO) as parquet file
         """
 
         context.log.debug("(Spark handle_output) Writing output to MinIO ...")
 
-        # E.g file_path: s3a://lakehouse/silver/goodreads/book/book_2021.parquet
-        # Or file_path: s3a://lakehouse/silver/goodreads/book.parquet if full load
-        file_path = "s3a://lakehouse/" + "/".join(context.asset_key.path)
-        # context.log.info(file_path)
-        if context.has_partition_key:
-            file_path += f"/book_{context.partition_key}"
-        file_path += ".parquet"
-        context.log.debug(f"(Spark handle_output) File path: {file_path}")
-        file_name = str(context.asset_key.path[-1])
-        context.log.debug(f"(Spark handle_output) File name: {file_name}")
-
+        layer, _,table = context.asset_key.path
+        table_name = str(table.replace(f"{layer}_", ""))
         try:
-            obj.write.mode("overwrite").parquet(file_path)
-            context.log.debug(f"Saved {file_name} to {file_path}")
+            obj.write.format("delta").mode("overwrite").saveAsTable(f"{layer}.{table_name}")
+            context.log.debug(f"Saved {table_name} to {layer}")
         except Exception as e:
             raise Exception(f"(Spark handle_output) Error while writing output: {e}")
 
@@ -73,31 +66,15 @@ class SparkIOManager(IOManager):
 
         # E.g context.asset_key.path: ['silver', 'goodreads', 'book']
         context.log.debug(f"Loading input from {context.asset_key.path}...")
-        file_path = "s3a://lakehouse/" + "/".join(context.asset_key.path)
-        if context.has_partition_key:
-            file_path += f"/book_{context.partition_key}"
-        full_load = (context.metadata or {}).get("full_load", False)
-        if not full_load:
-            file_path += ".parquet"
-        # E.g file_path: s3a://lakehouse/silver/goodreads/book/book_2021.parquet
-        # Or file_path: s3a://lakehouse/silver/goodreads/book if has partitions
-        context.log.debug("File path: " + file_path)
+        layer,_,table = context.asset_key.path
+        table_name = str(table.replace(f"{layer}_",""))
+        context.log.debug(f'loading input from {layer} layer - table {table_name}...')
 
         try:
             with get_spark_session(self._config) as spark:
                 df = None
-                if full_load:
-                    tmp_df = spark.read.parquet(file_path + "/book_2022.parquet")
-                    book_schema = tmp_df.schema
-                    df = (
-                        spark.read.format("parquet")
-                        .options(header=True, inferSchema=False)
-                        .schema(book_schema)
-                        .load(file_path + "/*.parquet")
-                    )
-                else:
-                    df = spark.read.parquet(file_path)
-                context.log.debug(f"Loaded {df.count()} rows from {file_path}")
+                df = spark.read.format("delta").load(f"{layer}.{table_name}")
+                context.log.debug(f"Loaded {df.count()} rows from {table_name}")
                 return df
         except Exception as e:
             raise Exception(f"Error while loading input: {e}")

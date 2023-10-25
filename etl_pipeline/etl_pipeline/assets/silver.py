@@ -50,7 +50,7 @@ def silver_cleaned_customers(context, bronze_customer: pl.DataFrame):
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
-
+        spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
