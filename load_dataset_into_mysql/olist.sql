@@ -91,6 +91,4 @@ CREATE TABLE order_reviews (
     FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
 
-
-
 -- SHOW VARIABLES LIKE 'secure_file_priv'
