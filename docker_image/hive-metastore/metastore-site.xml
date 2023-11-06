@@ -49,7 +49,7 @@
         <value>false</value>
     </property>
     <!-- <property>
-        <name>metastore.warehouse.dir</name>
+        <name>hive.metastore.warehouse.dir</name>
         <value>s3a://lakehouse/</value>
     </property> -->
      <!-- <property>

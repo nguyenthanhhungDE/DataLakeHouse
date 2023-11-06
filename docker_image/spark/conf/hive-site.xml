@@ -1,5 +1,5 @@
 <configuration>
-    <!-- <property>
+    <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
         <value>com.mysql.cj.jdbc.Driver</value>
     </property>
@@ -14,7 +14,7 @@
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
         <value>admin</value>
-    </property> -->
+    </property>
     <property>
         <name>fs.s3a.access.key</name>
         <value>minio</value>
@@ -36,10 +36,10 @@
         <value>false</value>
     </property>
     <property>
-        <name>metastore.warehouse.dir</name>
+        <name>hive.metastore.warehouse.dir</name>
         <value>s3a://lakehouse/</value>
     </property>
-    <property>
+    <!-- <property>
         <name>hive.input.format</name>
         <value>io.delta.hive.HiveInputFormat</value>
     </property>
@@ -50,5 +50,5 @@
     <property>
         <name>hive.tez.input.format</name>
        <value>io.delta.hive.HiveInputFormat</value>
-    </property>
+    </property> -->
 </configuration>

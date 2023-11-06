@@ -27,3 +27,4 @@ streamlit
 streamlit-pandas-profiling
 streamlit-elements
 dagster-docker
+PyHive==0.6.5
