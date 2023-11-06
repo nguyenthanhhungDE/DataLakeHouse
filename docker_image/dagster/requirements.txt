@@ -3,3 +3,4 @@ dagit==1.2.7
 dagster-postgres==0.18.7
 dagster-dbt==0.18.7
 dagster-docker
+PyHive==0.6.5
