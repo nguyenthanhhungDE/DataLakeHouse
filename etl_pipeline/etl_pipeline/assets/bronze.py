@@ -193,12 +193,12 @@ def bronze_order_reviews(context) -> Output[pl.DataFrame]:
     description="Load table 'product_category_name_translation' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "productcategoryname"],
+    key_prefix=["bronze", "productcategory"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
 # Extract data từ mysql
-def bronze_product_category_name_translation(context) -> Output[pl.DataFrame]:
+def bronze_product_category(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM product_category_name_translation;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
     context.log.info(f"Table extracted with shape: {df_data.shape}")
@@ -206,7 +206,7 @@ def bronze_product_category_name_translation(context) -> Output[pl.DataFrame]:
     return Output(
         value=df_data,
         metadata={
-            "table": "product_category_name_translation",
+            "table": "product_category",
             "row_count": df_data.shape[0],
             "column_count": df_data.shape[1],
             "columns": df_data.columns,

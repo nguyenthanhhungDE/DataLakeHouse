@@ -1,24 +1,11 @@
 <configuration>
-    <property>
-        <name>metastore.thrift.uris</name>
-        <value>thrift://hive-metastore:9083</value>
-        <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
-    </property>
-    <property>
-        <name>metastore.task.threads.always</name>
-        <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask,org.apache.hadoop.hive.metastore.MaterializationsCacheCleanerTask</value>
-    </property>
-    <property>
-        <name>metastore.expression.proxy</name>
-        <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
-    </property>
-    <property>
+    <!-- <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
         <value>com.mysql.cj.jdbc.Driver</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://mariadb:3306/metastore_db</value>
+        <value>jdbc:mysql://mariadb:3306/hive_metastore?createDatabaseIfNotExist=true</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
@@ -27,7 +14,7 @@
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
         <value>admin</value>
-    </property>
+    </property> -->
     <property>
         <name>fs.s3a.access.key</name>
         <value>minio</value>
@@ -48,9 +35,17 @@
         <name>fs.s3a.connection.ssl.enabled</name>
         <value>false</value>
     </property>
-     <property>
+    <property>
+        <name>metastore.warehouse.dir</name>
+        <value>s3a://lakehouse/</value>
+    </property>
+    <property>
         <name>hive.input.format</name>
         <value>io.delta.hive.HiveInputFormat</value>
+    </property>
+    <property>
+        <name>hive.output.format</name>
+        <value>io.delta.hive.HiveOutputFormat</value>
     </property>
     <property>
         <name>hive.tez.input.format</name>

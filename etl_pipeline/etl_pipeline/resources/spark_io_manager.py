@@ -32,6 +32,7 @@ def get_spark_session(config, run_id="Spark IO Manager"):
             .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider')
             .config('spark.sql.warehouse.dir', f's3a://lakehouse/')
             .config("hive.metastore.uris", "thrift://hive-metastore:9083")
+            .config("spark.sql.catalogImplementation", "hive")
             .enableHiveSupport()
             .getOrCreate()
         )

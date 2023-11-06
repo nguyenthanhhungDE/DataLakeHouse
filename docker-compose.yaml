@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     entrypoint: >
-      /bin/sh -c "  until (/usr/bin/mc config host add minio http://minio:9000/ minio minio123)  do echo '...waiting...' && sleep 10; done; tail -f /dev/null;"
+      /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000/ minio minio123) do echo '...waiting...' && sleep 10; done; /usr/bin/mc mb minio/mlflow; tail -f /dev/null;"
     depends_on:     
       - minio
     networks:
@@ -72,6 +72,8 @@ services:
     networks:
       - data_network
   
+
+
   spark-notebook:
     build: 
       context: ./notebooks
@@ -103,16 +105,39 @@ services:
   
   mysql:
     image: mysql:8.0
-    container_name: de_mysql
+    container_name: mysql
     volumes:
-      - ./storage/mysql_data:/var/lib/mysql
+      - mysql:/var/lib/mysql
       - ./dataset:/tmp/dataset
       - ./load_dataset_into_mysql:/tmp/load_dataset
     ports:
       - "3307:3306"
-    env_file: .env
+    # env_file: .env
+    environment:
+      - MYSQL_DATABASE=mlflowdb
+      - MYSQL_ROOT_USER=root
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=admin
+      - MYSQL_ROOT_PASSWORD=admin
     networks:
       - data_network
+  
+  web:
+    restart: always
+    build: ./docker_image/mlflow
+    image: mlflow
+    container_name: mlflow_server
+    depends_on:
+      - mc
+      - mysql
+    ports:
+      - "5000:5000"
+    networks:
+      - data_network
+    env_file: 
+      - .env
+    # environment:#   - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/#   - AWS_ACCESS_KEY_ID=minio#   - AWS_SECRET_ACCESS_KEY=minio123
+    command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --host 0.0.0.0
 
   mariadb:
     image: mariadb:10.5.16
@@ -130,11 +155,10 @@ services:
     container_name: hive-metastore
     hostname: hive-metastore
     image: "bitsondatadev/hive-metastore:latest"
-    #entrypoint: /entrypoint.sh
+    entrypoint: /entrypoint.sh
     ports:
       - "9083:9083"
     volumes:
-      # - ./hive-metastore/entrypoint.sh:/entrypoint.sh
       - ./docker_image/hive-metastore/metastore-site.xml:/opt/apache-hive-metastore-3.0.0-bin/conf/metastore-site.xml:ro
     environment:
       METASTORE_DB_HOSTNAME: mariadb
@@ -158,6 +182,26 @@ services:
     ports:
       - "5432:5432"
     env_file: .env
+    networks:
+      - data_network
+  
+  spark-thrift-server:
+    build:
+      context: ./docker_image/spark
+      dockerfile: ./Dockerfile
+    container_name: "spark-thrift-server"
+    restart: always
+    depends_on:
+      - spark-master
+      - hive-metastore
+    ports:
+      - "4041:4040"
+      - "10000:10000"
+    command: sh -c "
+      sleep 10 && ./sbin/start-thriftserver.sh --driver-java-options '-Dhive.metastore.uris=thrift://hive-metastore:9083' --master spark://spark-master:7077      --executor-memory 1G --total-executor-cores 1 --driver-memory 1G"
+    volumes:
+      - ./docker_image/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./docker_image/spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
     networks:
       - data_network
 
@@ -232,3 +276,4 @@ networks:
 
 volumes:
   postgres_data: {}
+  mysql: {}
