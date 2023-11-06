@@ -51,11 +51,11 @@ CREATE TABLE orders (
     order_id varchar(64) ,
     customer_id varchar(64) ,
     order_status varchar(32) ,
-    order_purchase_timestamp timestamp ,
-    order_approved_at timestamp ,
-    order_delivered_carrier_date timestamp ,
-    order_delivered_customer_date timestamp ,
-    order_estimated_delivery_date timestamp ,
+    order_purchase_timestamp date ,
+    order_approved_at date ,
+    order_delivered_carrier_date date ,
+    order_delivered_customer_date date ,
+    order_estimated_delivery_date date ,
 	PRIMARY KEY (order_id),
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
@@ -65,7 +65,7 @@ CREATE TABLE order_items (
     order_item_id int,
     product_id varchar(64),
     seller_id varchar(64),
-    shipping_limit_date timestamp,
+    shipping_limit_date date,
     price float,
     freight_value float,
     FOREIGN KEY (product_id) REFERENCES products(product_id),
@@ -86,8 +86,8 @@ CREATE TABLE order_reviews (
     review_id varchar(64),
     order_id varchar(64) ,
     review_score int ,
-    review_creation_date timestamp ,
-    review_answer_timestamp timestamp,
+    review_creation_date date ,
+    review_answer_timestamp date,
     FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
 
