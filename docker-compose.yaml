@@ -10,7 +10,7 @@ services:
       - "9000:9000"
     command: [ "server", "/data", "--console-address", ":9001" ]
     volumes:
-      - ./minio/data:/data
+      - miniodata:/data
     env_file:
       - .env
     networks:
@@ -48,7 +48,7 @@ services:
       - SPARK_USER=spark
     volumes:
       - ./docker_image/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      # - ./docker_image/spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+      - ./docker_image/spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
     networks:
       - data_network
 
@@ -62,15 +62,15 @@ services:
     networks:
       - data_network
 
-  spark-worker-2:
-    image: docker.io/bitnami/spark:3.3.2
-    container_name: "spark-worker-2"
-    env_file:
-      - .env
-    depends_on:
-      - spark-master
-    networks:
-      - data_network
+  # spark-worker-2:
+  #   image: docker.io/bitnami/spark:3.3
+  #   container_name: "spark-worker-2"
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - data_network
   
 
 
@@ -93,21 +93,21 @@ services:
       - data_network
 
 
-  metabase:
-    image: metabase/metabase:latest
-    container_name: "metabase"
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - data_network
+  # metabase:
+  #   image: metabase/metabase:latest
+  #   container_name: "metabase"
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - data_network
   
   mysql:
     image: mysql:8.0
     container_name: mysql
     volumes:
-      - mysql:/var/lib/mysql
+      - mysql_h:/var/lib/mysql
       - ./dataset:/tmp/dataset
       - ./load_dataset_into_mysql:/tmp/load_dataset
     ports:
@@ -131,7 +131,7 @@ services:
       - mc
       - mysql
     ports:
-      - "5000:5000"
+      - "7893:5000"
     networks:
       - data_network
     env_file: 
@@ -142,8 +142,8 @@ services:
   mariadb:
     image: mariadb:10.5.16
     container_name: mariadb
-    # volumes:
-    #   - ./mysql:/var/lib/mysql
+    volumes:
+      - mariadb:/var/lib/mysql
     ports:
       - "3309:3306"
     env_file:
@@ -166,14 +166,14 @@ services:
       - data_network
     depends_on:
       - mariadb
-      - minio
+      # - minio
 
   de_psql:
     image: postgres:14-alpine
     container_name: de_psql
     hostname: de_psql
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_h:/var/lib/postgresql/data
       - ./pg_hba.conf:/tmp/pg_hba.conf
       # - ./load_dataset:/tmp/load_dataset
     command: ["postgres", "-c", "hba_file=/tmp/pg_hba.conf"]
@@ -257,7 +257,7 @@ services:
     user: root
     volumes:
       - ./etl_pipeline:/opt/dagster/app/etl_pipeline
-      # - ./etl_pipeline/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
+      - ./etl_pipeline/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
     env_file:
       - .env
     expose:
@@ -275,5 +275,7 @@ networks:
 #     driver: local
 
 volumes:
-  postgres_data: {}
-  mysql: {}
+  postgres_data_h: {}
+  mysql_h: {}
+  miniodata: {}
+  mariadb: {}
