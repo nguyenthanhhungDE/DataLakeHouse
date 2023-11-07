@@ -49,8 +49,8 @@
         <value>false</value>
     </property>
     <!-- <property>
-        <name>hive.metastore.warehouse.dir</name>
-        <value>s3a://lakehouse/</value>
+        <name>hive.strict.managed.tables</name>
+        <value>true</value>
     </property> -->
      <!-- <property>
         <name>hive.input.format</name>
