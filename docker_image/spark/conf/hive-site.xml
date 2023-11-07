@@ -35,10 +35,10 @@
         <name>fs.s3a.connection.ssl.enabled</name>
         <value>false</value>
     </property>
-    <property>
+    <!-- <property>
         <name>hive.metastore.warehouse.dir</name>
         <value>s3a://lakehouse/</value>
-    </property>
+    </property> -->
     <!-- <property>
         <name>hive.input.format</name>
         <value>io.delta.hive.HiveInputFormat</value>
