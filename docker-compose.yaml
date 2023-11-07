@@ -53,7 +53,7 @@ services:
       - data_network
 
   spark-worker-1:
-    image: docker.io/bitnami/spark:3.3
+    image: docker.io/bitnami/spark:3.3.2
     container_name: "spark-worker-1"
     env_file:
       - .env
@@ -63,7 +63,7 @@ services:
       - data_network
 
   spark-worker-2:
-    image: docker.io/bitnami/spark:3.3
+    image: docker.io/bitnami/spark:3.3.2
     container_name: "spark-worker-2"
     env_file:
       - .env
@@ -195,7 +195,7 @@ services:
       - spark-master
       - hive-metastore
     ports:
-      - "4040:4040"
+      - "4041:4040"
       - "10000:10000"
     command: sh -c "
       sleep 10 && ./sbin/start-thriftserver.sh --driver-java-options '-Dhive.metastore.uris=thrift://hive-metastore:9083' --master spark://spark-master:7077 --executor-memory 1G --total-executor-cores 1 --driver-memory 1G"

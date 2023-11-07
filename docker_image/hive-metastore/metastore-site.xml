@@ -18,7 +18,7 @@
     </property>
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://mariadb:3306/metastore_db</value>
+        <value>jdbc:mysql://mariadb:3306/metastore_db?createDatabaseIfNotExist=true</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
@@ -46,6 +46,18 @@
     </property>
     <property>
         <name>fs.s3a.connection.ssl.enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hive.metastore.metadb.dir</name>
+        <value>s3a://lakehouse/metadb</value>
+    </property>
+    <property>
+        <name>hive.metastore.metastore.discovery-class</name>
+        <value>org.apache.hadoop.hive.metastore.ObjectStore</value>
+    </property>
+    <property>
+        <name>hive.metastore.schema.verification</name>
         <value>false</value>
     </property>
     <!-- <property>
