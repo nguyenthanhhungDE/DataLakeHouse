@@ -1,0 +1,6 @@
+dagster_home/.nux/
+dagster_home/.telemetry/
+dagster_home/compute_logs/
+dagster_home/logs/
+
+minio/
