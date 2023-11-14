@@ -53,6 +53,7 @@ def silver_cleaned_customers(context, bronze_customer: pl.DataFrame):
         )
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
+        spark_df = spark_df.dropDuplicates()
         spark_df= spark_df.na.drop()
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
@@ -104,6 +105,7 @@ def silver_cleaned_sellers(context, bronze_sellers: pl.DataFrame):
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df= spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
 
@@ -154,6 +156,7 @@ def silver_cleaned_products(context, bronze_products: pl.DataFrame):
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         columns_to_convert = ["product_description_length",
                       "product_length_cm", "product_height_cm", "product_width_cm"]
@@ -208,6 +211,7 @@ def silver_cleaned_orders(context, bronze_orders: pl.DataFrame):
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
 
@@ -261,6 +265,7 @@ def silver_cleaned_order_items(context, bronze_order_items: pl.DataFrame):
         spark_df = spark_df.withColumn("price", round(col("price"), 2).cast("double"))
         spark_df = spark_df.withColumn("freight_value", round(col("freight_value"), 2).cast("double"))
         spark_df = spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
 
         # spark_df.unpersist()
@@ -315,6 +320,7 @@ def silver_cleaned_payments(context, bronze_payments: pl.DataFrame):
         spark_df = spark_df.withColumn(
             "payment_installments", col("payment_installments").cast("integer"))
         spark_df = spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
 
         # spark_df.unpersist()
@@ -365,6 +371,7 @@ def silver_cleaned_order_reviews(context, bronze_order_reviews: pl.DataFrame):
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
         spark_df =  spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
 
         # spark_df.unpersist()
@@ -413,6 +420,7 @@ def silver_cleaned_product_category(context, bronze_product_category: pl.DataFra
         )
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
+        spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         spark_df =  spark_df.na.drop()
         context.log.info("Got Spark DataFrame")
