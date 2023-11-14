@@ -93,15 +93,17 @@ services:
       - data_network
 
 
-  # metabase:
-  #   image: metabase/metabase:latest
-  #   container_name: "metabase"
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - data_network
+  metabase:
+    image: metabase/metabase:latest
+    container_name: "metabase"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - metabasedata:/metabase-data
+    networks:
+      - data_network
   
   mysql:
     image: mysql:8.0
@@ -279,3 +281,4 @@ volumes:
   mysql_h: {}
   miniodata: {}
   mariadb: {}
+  metabasedata: {}
