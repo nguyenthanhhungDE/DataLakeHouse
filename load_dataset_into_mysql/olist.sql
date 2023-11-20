@@ -15,6 +15,13 @@ CREATE TABLE product_category_name_translation (
 -- #    geolocation_state VARCHAR(64) NOT NULL, 
 -- #    PRIMARY KEY (geolocation_zip_code_prefix)
 -- #);
+CREATE TABLE geolocation (
+    geolocation_zip_code_prefix INT,
+    geolocation_lat FLOAT ,
+    geolocation_lng FLOAT ,
+    geolocation_city NVARCHAR(64) ,
+    geolocation_state VARCHAR(64)
+);
 
 CREATE TABLE sellers (
     seller_id varchar(64)  ,

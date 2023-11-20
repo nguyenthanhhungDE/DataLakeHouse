@@ -1,15 +1,15 @@
 from dagster import asset, AssetIn, Output, StaticPartitionsDefinition
-from datetime import datetime
+
 import polars as pl
 import requests
 import os
-from pyspark.sql.functions import regexp_replace
-from pyspark.sql.functions import round, col
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
 
 from pyspark.sql import DataFrame
-
+from datetime import datetime, timedelta
 from ..resources.spark_io_manager import get_spark_session
-from pyspark.sql.functions import udf, col, regexp_replace, lower, when
 
 
 COMPUTE_KIND = "PySpark"
@@ -19,7 +19,7 @@ YEARLY = StaticPartitionsDefinition(
 )
 
 
-# Silver cleaned book
+# Silver cleaned customer
 @asset(
     description="Load 'customers' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     ins={
@@ -32,7 +32,7 @@ YEARLY = StaticPartitionsDefinition(
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_customers(context, bronze_customer: pl.DataFrame):
+def silver_cleaned_customer(context, bronze_customer: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -54,7 +54,7 @@ def silver_cleaned_customers(context, bronze_customer: pl.DataFrame):
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.dropDuplicates()
-        spark_df= spark_df.na.drop()
+        spark_df = spark_df.na.drop()
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
 
@@ -63,27 +63,28 @@ def silver_cleaned_customers(context, bronze_customer: pl.DataFrame):
         return Output(
             value=spark_df,
             metadata={
-                "table": "silver_cleaned_customers",
+                "table": "silver_cleaned_customer",
                 "row_count": spark_df.count(),
                 "column_count": len(spark_df.columns),
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned sellers
+
+
 @asset(
-    description="Load 'sellers' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    description="Load 'seller' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
     ins={
-        "bronze_sellers": AssetIn(
-            key_prefix=["bronze", "sellers"],
+        "bronze_seller": AssetIn(
+            key_prefix=["bronze", "seller"],
         ),
     },
     io_manager_key="spark_io_manager",
-    key_prefix=["silver", "sellers"],
+    key_prefix=["silver", "seller"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_sellers(context, bronze_sellers: pl.DataFrame):
+def silver_cleaned_seller(context, bronze_seller: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -98,13 +99,13 @@ def silver_cleaned_sellers(context, bronze_sellers: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_sellers.to_pandas()
+        pandas_df = bronze_seller.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
-        spark_df= spark_df.na.drop()
+        spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
@@ -120,21 +121,22 @@ def silver_cleaned_sellers(context, bronze_sellers: pl.DataFrame):
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned products
+
+
 @asset(
-    description="Load 'products' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    description="Load 'product' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
     ins={
-        "bronze_products": AssetIn(
-            key_prefix=["bronze", "products"],
+        "bronze_product": AssetIn(
+            key_prefix=["bronze", "product"],
         ),
     },
     io_manager_key="spark_io_manager",
-    key_prefix=["silver", "products"],
+    key_prefix=["silver", "product"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_products(context, bronze_products: pl.DataFrame):
+def silver_cleaned_product(context, bronze_product: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -149,7 +151,7 @@ def silver_cleaned_products(context, bronze_products: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_products.to_pandas()
+        pandas_df = bronze_product.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
@@ -158,8 +160,12 @@ def silver_cleaned_products(context, bronze_products: pl.DataFrame):
         spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
-        columns_to_convert = ["product_description_length",
-                      "product_length_cm", "product_height_cm", "product_width_cm"]
+        columns_to_convert = [
+            "product_description_length",
+            "product_length_cm",
+            "product_height_cm",
+            "product_width_cm",
+        ]
         for column in columns_to_convert:
             spark_df = spark_df.withColumn(column, col(column).cast("integer"))
         context.log.info("Got Spark DataFrame")
@@ -169,78 +175,28 @@ def silver_cleaned_products(context, bronze_products: pl.DataFrame):
         return Output(
             value=spark_df,
             metadata={
-                "table": "silver_cleaned_products",
+                "table": "silver_cleaned_product",
                 "row_count": spark_df.count(),
                 "column_count": len(spark_df.columns),
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned orders
-@asset(
-    description="Load 'orders' table from bronze layer in minIO, into a Spark dataframe, then clean data",
-    # partitions_def=YEARLY,
-    ins={
-        "bronze_orders": AssetIn(
-            key_prefix=["bronze", "orders"],
-        ),
-    },
-    io_manager_key="spark_io_manager",
-    key_prefix=["silver", "orders"],
-    compute_kind=COMPUTE_KIND,
-    group_name=LAYER,
-)
-def silver_cleaned_orders(context, bronze_orders: pl.DataFrame):
-    """
-    Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
-    """
 
-    config = {
-        "endpoint_url": os.getenv("MINIO_ENDPOINT"),
-        "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
-        "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
-    }
 
-    context.log.debug("Start creating spark session")
-
-    with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
-        # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_orders.to_pandas()
-        context.log.debug(
-            f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
-        )
-        # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
-        spark_df = spark.createDataFrame(pandas_df)
-        spark_df = spark_df.na.drop()
-        spark_df = spark_df.dropDuplicates()
-        # spark_df.cache()
-        context.log.info("Got Spark DataFrame")
-
-        # spark_df.unpersist()
-
-        return Output(
-            value=spark_df,
-            metadata={
-                "table": "silver_cleaned_orders",
-                "row_count": spark_df.count(),
-                "column_count": len(spark_df.columns),
-                "columns": spark_df.columns,
-            },
-        )
-# Silver cleaned book
 @asset(
     description="Load 'order_items' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
     ins={
-        "bronze_order_items": AssetIn(
-            key_prefix=["bronze", "orderitems"],
+        "bronze_order_item": AssetIn(
+            key_prefix=["bronze", "orderitem"],
         ),
     },
     io_manager_key="spark_io_manager",
-    key_prefix=["silver", "orderitems"],
+    key_prefix=["silver", "orderitem"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_order_items(context, bronze_order_items: pl.DataFrame):
+def silver_cleaned_order_item(context, bronze_order_item: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -255,7 +211,7 @@ def silver_cleaned_order_items(context, bronze_order_items: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_order_items.to_pandas()
+        pandas_df = bronze_order_item.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
@@ -263,7 +219,9 @@ def silver_cleaned_order_items(context, bronze_order_items: pl.DataFrame):
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
         spark_df = spark_df.withColumn("price", round(col("price"), 2).cast("double"))
-        spark_df = spark_df.withColumn("freight_value", round(col("freight_value"), 2).cast("double"))
+        spark_df = spark_df.withColumn(
+            "freight_value", round(col("freight_value"), 2).cast("double")
+        )
         spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
@@ -279,21 +237,22 @@ def silver_cleaned_order_items(context, bronze_order_items: pl.DataFrame):
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned payments
+
+
 @asset(
-    description="Load 'payments' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    description="Load 'payment' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
     ins={
-        "bronze_payments": AssetIn(
-            key_prefix=["bronze", "payments"],
+        "bronze_payment": AssetIn(
+            key_prefix=["bronze", "payment"],
         ),
     },
     io_manager_key="spark_io_manager",
-    key_prefix=["silver", "payments"],
+    key_prefix=["silver", "payment"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_payments(context, bronze_payments: pl.DataFrame):
+def silver_cleaned_payment(context, bronze_payment: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -308,17 +267,19 @@ def silver_cleaned_payments(context, bronze_payments: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_payments.to_pandas()
+        pandas_df = bronze_payment.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
-        spark_df = spark_df.withColumn("payment_value", round(
-            col("payment_value"), 2).cast("double"))
         spark_df = spark_df.withColumn(
-            "payment_installments", col("payment_installments").cast("integer"))
+            "payment_value", round(col("payment_value"), 2).cast("double")
+        )
+        spark_df = spark_df.withColumn(
+            "payment_installments", col("payment_installments").cast("integer")
+        )
         spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
@@ -334,21 +295,22 @@ def silver_cleaned_payments(context, bronze_payments: pl.DataFrame):
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned order_reviews
+
+
 @asset(
-    description="Load 'order_reviews' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    description="Load 'order_review' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
     ins={
-        "bronze_order_reviews": AssetIn(
-            key_prefix=["bronze", "orderreviews"],
+        "bronze_order_review": AssetIn(
+            key_prefix=["bronze", "orderreview"],
         ),
     },
     io_manager_key="spark_io_manager",
-    key_prefix=["silver", "orderreviews"],
+    key_prefix=["silver", "orderreview"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
-def silver_cleaned_order_reviews(context, bronze_order_reviews: pl.DataFrame):
+def silver_cleaned_order_review(context, bronze_order_review: pl.DataFrame):
     """
     Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
     """
@@ -363,14 +325,14 @@ def silver_cleaned_order_reviews(context, bronze_order_reviews: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
-        pandas_df = bronze_order_reviews.to_pandas()
+        pandas_df = bronze_order_review.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
-        spark_df =  spark_df.na.drop()
+        spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")
 
@@ -385,7 +347,8 @@ def silver_cleaned_order_reviews(context, bronze_order_reviews: pl.DataFrame):
                 "columns": spark_df.columns,
             },
         )
-# Silver cleaned product_category_name_translation
+
+
 @asset(
     description="Load 'order_reviews' table from bronze layer in minIO, into a Spark dataframe, then clean data",
     # partitions_def=YEARLY,
@@ -422,7 +385,7 @@ def silver_cleaned_product_category(context, bronze_product_category: pl.DataFra
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
-        spark_df =  spark_df.na.drop()
+        spark_df = spark_df.na.drop()
         context.log.info("Got Spark DataFrame")
 
         # spark_df.unpersist()
@@ -431,6 +394,151 @@ def silver_cleaned_product_category(context, bronze_product_category: pl.DataFra
             value=spark_df,
             metadata={
                 "table": "silver_cleaned_product_category",
+                "row_count": spark_df.count(),
+                "column_count": len(spark_df.columns),
+                "columns": spark_df.columns,
+            },
+        )
+
+
+# # # ---------------------------------------#
+@asset(
+    description="Load 'orders' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    # partitions_def=YEARLY,
+    ins={
+        "bronze_order": AssetIn(
+            key_prefix=["bronze", "order"],
+        ),
+    },
+    io_manager_key="spark_io_manager",
+    key_prefix=["silver", "order"],
+    compute_kind=COMPUTE_KIND,
+    group_name=LAYER,
+)
+def silver_cleaned_order(context, bronze_order: pl.DataFrame):
+    """
+    Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
+    """
+    config = {
+        "endpoint_url": os.getenv("MINIO_ENDPOINT"),
+        "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
+        "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
+    }
+    context.log.debug("Start creating spark session")
+    with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
+        # Convert bronze_book from polars DataFrame to Spark DataFrame
+        pandas_df = bronze_order.to_pandas()
+        context.log.debug(
+            f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
+        )
+        # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
+        spark_df = spark.createDataFrame(pandas_df)
+        spark_df = spark_df.na.drop()
+        spark_df = spark_df.dropDuplicates()
+        # spark_df.cache()
+        context.log.info("Got Spark DataFrame")
+        # spark_df.unpersist()
+        return Output(
+            value=spark_df,
+            metadata={
+                "table": "silver_cleaned_orders",
+                "row_count": spark_df.count(),
+                "column_count": len(spark_df.columns),
+                "columns": spark_df.columns,
+            },
+        )
+
+
+@asset(
+    description="silver date",
+    ins={
+        "bronze_order": AssetIn(
+            key_prefix=["bronze", "order"],
+        ),
+    },
+    io_manager_key="spark_io_manager",
+    key_prefix=["silver", "date"],
+    compute_kind=COMPUTE_KIND,
+    group_name=LAYER,
+)
+def silver_date(context, bronze_order: pl.DataFrame):
+    """
+    Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
+    """
+
+    config = {
+        "endpoint_url": os.getenv("MINIO_ENDPOINT"),
+        "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
+        "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
+    }
+    context.log.info("Got Spark DataFrame")
+    # spark_df.unpersist()
+    context.log.debug("Start creating spark session")
+    with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
+        date_df = bronze_order.select("order_purchase_timestamp").to_pandas()
+        context.log.debug(f"Converted to pandas DataFrame with shape: {date_df.shape}")
+        date_df = spark.createDataFrame(date_df)
+        date_df = date_df.na.drop()
+        date_df = date_df.dropDuplicates()
+        # spark_df.cache()
+        context.log.info("Got Spark DataFrame")
+        # spark_df.unpersist()
+
+        return Output(
+            value=date_df,
+            metadata={
+                "table": "silver_date",
+                "row_count": date_df.count(),
+                "column_count": len(date_df.columns),
+                "columns": date_df.columns,
+            },
+        )
+
+
+@asset(
+    description="Load 'geo' table from bronze layer in minIO, into a Spark dataframe, then clean data",
+    # partitions_def=YEARLY,
+    ins={
+        "bronze_geolocation": AssetIn(
+            key_prefix=["bronze", "geolocation"],
+        ),
+    },
+    io_manager_key="spark_io_manager",
+    key_prefix=["silver", "geolocation"],
+    compute_kind=COMPUTE_KIND,
+    group_name=LAYER,
+)
+def silver_cleaned_geolocation(context, bronze_geolocation: pl.DataFrame):
+    """
+    Load customers table from bronze layer in minIO, into a Spark dataframe, then clean data
+    """
+
+    config = {
+        "endpoint_url": os.getenv("MINIO_ENDPOINT"),
+        "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
+        "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
+    }
+
+    context.log.debug("Start creating spark session")
+
+    with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
+        # Convert bronze_book from polars DataFrame to Spark DataFrame
+        pandas_df = bronze_geolocation.to_pandas()
+        context.log.debug(
+            f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
+        )
+        spark_df = spark.createDataFrame(pandas_df)
+        spark_df = spark_df.dropDuplicates()
+        # spark_df.cache()
+        spark_df = spark_df.na.drop()
+        context.log.info("Got Spark DataFrame")
+
+        # spark_df.unpersist()
+
+        return Output(
+            value=spark_df,
+            metadata={
+                "table": "silver_cleaned_geolocation",
                 "row_count": spark_df.count(),
                 "column_count": len(spark_df.columns),
                 "columns": spark_df.columns,
