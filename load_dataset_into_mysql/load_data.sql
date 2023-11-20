@@ -29,3 +29,7 @@ IGNORE 1 ROWS;
 LOAD DATA local INFILE '/tmp/dataset/olist_order_reviews_dataset.csv'
 INTO TABLE order_reviews FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\r\n'
 IGNORE 1 ROWS;
+
+LOAD DATA local INFILE '/tmp/dataset/olist_geolocation_dataset.csv'
+INTO TABLE geolocation FIELDS TERMINATED BY ',' enclosed by '"' LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS;

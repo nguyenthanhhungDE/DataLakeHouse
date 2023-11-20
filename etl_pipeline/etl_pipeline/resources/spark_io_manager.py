@@ -74,7 +74,7 @@ class SparkIOManager(IOManager):
         try:
             with get_spark_session(self._config) as spark:
                 df = None
-                df = spark.read.format("delta").load(f"{layer}.{table_name}")
+                df = spark.read.table(f"{layer}.{table_name}")
                 context.log.debug(f"Loaded {df.count()} rows from {table_name}")
                 return df
         except Exception as e:

@@ -100,8 +100,8 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    volumes:
-      - metabasedata:/metabase-data
+    # volumes:
+    #   - metabasedata:/metabase-data
     networks:
       - data_network
   
@@ -281,4 +281,4 @@ volumes:
   mysql_h: {}
   miniodata: {}
   mariadb: {}
-  metabasedata: {}
+  # metabasedata: {}
