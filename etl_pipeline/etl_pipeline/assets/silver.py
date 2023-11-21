@@ -106,7 +106,8 @@ def silver_cleaned_seller(context, bronze_seller: pl.DataFrame):
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.na.drop()
-        spark_df = spark_df.dropDuplicates()
+        spark_df = spark_df.dropDuplicates(subset=["seller_id"])
+        # .dropDuplicates(subset=["customer_id"])
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
 
@@ -434,7 +435,8 @@ def silver_cleaned_order(context, bronze_order: pl.DataFrame):
         # spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.na.drop()
-        spark_df = spark_df.dropDuplicates()
+        # spark_df = spark_df.dropDuplicates()
+        spark_df = spark_df.dropDuplicates(["order_id"])
         # spark_df.cache()
         context.log.info("Got Spark DataFrame")
         # spark_df.unpersist()
@@ -531,6 +533,14 @@ def silver_cleaned_geolocation(context, bronze_geolocation: pl.DataFrame):
         spark_df = spark_df.dropDuplicates()
         # spark_df.cache()
         spark_df = spark_df.na.drop()
+        # filter tọa độ cho đúng theo giới hạn của brazill
+        spark_df = spark_df.filter(
+            (col("geolocation_lat") <= 5.27438888)
+            & (col("geolocation_lng") >= -73.98283055)
+            & (col("geolocation_lat") >= -33.75116944)
+            & (col("geolocation_lng") <= -34.79314722)
+        )
+
         context.log.info("Got Spark DataFrame")
 
         # spark_df.unpersist()

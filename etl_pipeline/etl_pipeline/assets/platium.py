@@ -21,7 +21,6 @@ from pyspark.sql.functions import udf, col, regexp_replace, lower, when
         "dim_product": AssetIn(key_prefix=["gold", "dimproduct"]),
         "dim_date": AssetIn(key_prefix=["gold", "date"]),
         "fact_table": AssetIn(key_prefix=["gold", "facttable"]),
-        "dim_geolocation": AssetIn(key_prefix=["gold", "dimgeolocation"]),
     },
     io_manager_key="spark_io_manager",
     key_prefix=["platium", "sale"],
@@ -35,7 +34,6 @@ def Cube_sale(
     dim_seller,
     dim_product,
     dim_date,
-    dim_geolocation,
     fact_table: DataFrame,
 ):
     """
@@ -63,25 +61,26 @@ def Cube_sale(
             .join(dim_product, on="product_id", how="inner")
             .join(dim_customer, on="customer_id", how="inner")
             .join(dim_seller, on="seller_id", how="inner")
-            .join(dim_date, on="dateKey", how="inner"))
-        
-        data_mart=data_mart.join(dim_geolocation,data_mart["customer_zip_code_prefix"]== dim_geolocation["geolocation_zip_code_prefix"],
-                how="inner",
-            )
-            # .join(
-            #     dim_geolocation,
-            #     data_mart["customer_zip_code_prefix"]
-            #     == dim_geolocation["geolocation_zip_code_prefix"],
-            #     how="inner",
-            # )
-            # .join(
-            #     dim_geolocation,
-            #     data_mart["seller_zip_code_prefix"]
-            #     == dim_geolocation["geolocation_zip_code_prefix"],
-            #     how="inner",
-            # )
-            # .join(dim_geolocation,data_mart["customer_zip_code_prefix"]== dim_geolocation["geolocation_zip_code_prefix"], how="inner")
-        
+            .join(dim_date, on="dateKey", how="inner")
+        )
+        data_mart = data_mart.dropDuplicates(subset=["order_id", "customer_unique_id"])
+
+        # data_mart=data_mart.join(dim_geolocation,data_mart["customer_zip_code_prefix"]== dim_geolocation["geolocation_zip_code_prefix"],
+        #         how="inner",
+        #     )
+        # .join(
+        #     dim_geolocation,
+        #     data_mart["customer_zip_code_prefix"]
+        #     == dim_geolocation["geolocation_zip_code_prefix"],
+        #     how="inner",
+        # )
+        # .join(
+        #     dim_geolocation,
+        #     data_mart["seller_zip_code_prefix"]
+        #     == dim_geolocation["geolocation_zip_code_prefix"],
+        #     how="inner",
+        # )
+        # .join(dim_geolocation,data_mart["customer_zip_code_prefix"]== dim_geolocation["geolocation_zip_code_prefix"], how="inner")
 
         return Output(
             value=data_mart,
