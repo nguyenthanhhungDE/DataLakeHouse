@@ -19,13 +19,16 @@ LAYER = "gold"
     description="Split book table to get basic info",
     ins={
         "silver_cleaned_customer": AssetIn(key_prefix=["silver", "customer"]),
+        "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),
     },
     io_manager_key="spark_io_manager",
     key_prefix=["gold", "dimcustomer"],
     compute_kind="PySpark",
     group_name="gold",
 )
-def dim_customer(context, silver_cleaned_customer: DataFrame):
+def dim_customer(
+    context, silver_cleaned_customer, silver_cleaned_geolocation: DataFrame
+):
     """
     Split book table to get basic info
     """
@@ -38,23 +41,56 @@ def dim_customer(context, silver_cleaned_customer: DataFrame):
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS gold")
 
-        spark_df = silver_cleaned_customer
+        customer = silver_cleaned_customer
+        geolocation = silver_cleaned_geolocation
+        # Thực hiện left join
+        joined_df = customer.join(
+            geolocation,
+            customer["customer_zip_code_prefix"]
+            == geolocation["geolocation_zip_code_prefix"],
+            how="left",
+        )
+        # Đổi tên các cột
+        joined_df = joined_df.withColumnRenamed(
+            "geolocation_lat", "customer_lat"
+        ).withColumnRenamed("geolocation_lng", "customer_lng")
 
+        # Thêm cột customer_city
+        joined_df = joined_df.withColumn("customer_city", joined_df["geolocation_city"])
+
+        # Thêm cột customer_state
+        joined_df = joined_df.withColumn(
+            "customer_state", joined_df["geolocation_state"]
+        )
+
+        # Xóa các cột không cần thiết
+        joined_df = joined_df.drop(
+            "geolocation_city",
+            "geolocation_state",
+            "customer_zip_code_prefix",
+            "geolocation_zip_code_prefix",
+        )
+
+        # Lọc các dòng trùng lặp dựa trên cột customer_id
+        joined_df = joined_df.dropDuplicates(subset=["customer_id"])
         context.log.info("Got spark DataFrame, getting neccessary columns")
 
-        spark_df = spark_df.select(
+        final_df = joined_df.select(
             "customer_id",
             "customer_unique_id",
-            "customer_zip_code_prefix",
+            "customer_city",
+            "customer_state",
+            "customer_lat",
+            "customer_lng",
         )
 
         return Output(
-            value=spark_df,
+            value=final_df,
             metadata={
                 "table": "dim_customers",
-                "row_count": spark_df.count(),
-                "column_count": len(spark_df.columns),
-                "columns": spark_df.columns,
+                "row_count": final_df.count(),
+                "column_count": len(final_df.columns),
+                "columns": final_df.columns,
             },
         )
 
@@ -214,7 +250,6 @@ def dim_product(
         "product_height_cm",
         "product_width_cm",
     )
-    #     spark_df.collect()
 
     return Output(
         value=spark_df,
@@ -311,6 +346,7 @@ def fact_table(
         .join(dim_seller, on="seller_id", how="inner")
         .join(silver_cleaned_payment, on="order_id", how="inner")
         .join(silver_cleaned_order_review, on="order_id", how="inner")
+        .join(dim_product, on="product_id", how="inner")
         .join(
             dim_date,
             Union["order_purchase_timestamp"] == dim_date["full_date"],
@@ -325,15 +361,7 @@ def fact_table(
                 "review_id",
                 "seller_id",
                 "dateKey",
-                # "datetime_id",
-                # "product_name_length",
-                # "product_description_length",
-                # "product_photos_qty",
-                # "product_weight_g",
-                # "product_length_cm",
-                # "product_height_cm",
-                # "product_width_cm"
-                # "price",
+                "price",
                 # "freight_value",
                 # "payment_value",
                 "payment_value",
@@ -348,6 +376,7 @@ def fact_table(
         metadata={
             "table": "fact_table",
             "records count": len(fact_table.columns),
+            "row_count": fact_table.count(),
         },
     )
 
