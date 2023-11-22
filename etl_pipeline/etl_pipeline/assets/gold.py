@@ -95,48 +95,48 @@ def dim_customer(
         )
 
 
-@asset(
-    description="Split book table to get basic info",
-    ins={
-        "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),
-    },
-    io_manager_key="spark_io_manager",
-    key_prefix=["gold", "dimgeolocation"],
-    compute_kind="PySpark",
-    group_name="gold",
-)
-def dim_geolocation(context, silver_cleaned_geolocation: DataFrame):
-    """
-    Split book table to get basic info
-    """
-    config = {
-        "endpoint_url": os.getenv("MINIO_ENDPOINT"),
-        "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
-        "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
-    }
+# @asset(
+#     description="Split book table to get basic info",
+#     ins={
+#         "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),
+#     },
+#     io_manager_key="spark_io_manager",
+#     key_prefix=["gold", "dimgeolocation"],
+#     compute_kind="PySpark",
+#     group_name="gold",
+# )
+# def dim_geolocation(context, silver_cleaned_geolocation: DataFrame):
+#     """
+#     Split book table to get basic info
+#     """
+#     config = {
+#         "endpoint_url": os.getenv("MINIO_ENDPOINT"),
+#         "minio_access_key": os.getenv("MINIO_ACCESS_KEY"),
+#         "minio_secret_key": os.getenv("MINIO_SECRET_KEY"),
+#     }
 
-    with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
-        spark_df = silver_cleaned_geolocation
+#     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
+#         spark_df = silver_cleaned_geolocation
 
-        context.log.info("Got spark DataFrame, getting neccessary columns")
+#         context.log.info("Got spark DataFrame, getting neccessary columns")
 
-        spark_df = spark_df.select(
-            "geolocation_zip_code_prefix",
-            "geolocation_lat",
-            "geolocation_lng",
-            "geolocation_city",
-            "geolocation_state",
-        )
+#         spark_df = spark_df.select(
+#             "geolocation_zip_code_prefix",
+#             "geolocation_lat",
+#             "geolocation_lng",
+#             "geolocation_city",
+#             "geolocation_state",
+#         )
 
-        return Output(
-            value=spark_df,
-            metadata={
-                "table": "dim_geolocation",
-                "row_count": spark_df.count(),
-                "column_count": len(spark_df.columns),
-                "columns": spark_df.columns,
-            },
-        )
+#         return Output(
+#             value=spark_df,
+#             metadata={
+#                 "table": "dim_geolocation",
+#                 "row_count": spark_df.count(),
+#                 "column_count": len(spark_df.columns),
+#                 "columns": spark_df.columns,
+#             },
+#         )
 
 
 @asset(
@@ -362,7 +362,7 @@ def fact_table(
                 "seller_id",
                 "dateKey",
                 "price",
-                # "freight_value",
+                "freight_value",
                 # "payment_value",
                 "payment_value",
                 "payment_installments",
