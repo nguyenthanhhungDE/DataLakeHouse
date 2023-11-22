@@ -98,8 +98,20 @@ services:
     container_name: "metabase"
     ports:
       - "3000:3000"
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: admin
+      MB_DB_PASS: admin
+      MB_DB_HOST: de_psql
+    healthcheck:
+      test: curl --fail -I http://localhost:3000/api/health || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
     # volumes:
     #   - metabasedata:/metabase-data
     networks:
