@@ -83,6 +83,9 @@ services:
     environment:
       - JUPYTER_ENABLE_LAB="yes"
       - GRANT_SUDO="yes"
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/ 
+      - AWS_ACCESS_KEY_ID=minio
+      - AWS_SECRET_ACCESS_KEY=minio123
     volumes:
       - ./notebooks/work:/home/jovyan/work
       - ./notebooks/conf/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
@@ -148,10 +151,12 @@ services:
       - "7893:5000"
     networks:
       - data_network
-    env_file: 
-      - .env
+    environment:   
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/ 
+      - AWS_ACCESS_KEY_ID=minio
+      - AWS_SECRET_ACCESS_KEY=minio123
     # environment:#   - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/#   - AWS_ACCESS_KEY_ID=minio#   - AWS_SECRET_ACCESS_KEY=minio123
-    command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --host 0.0.0.0
+    command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --artifacts-destination s3://mlflow/ --host 0.0.0.0
 
   mariadb:
     image: mariadb:10.5.16
