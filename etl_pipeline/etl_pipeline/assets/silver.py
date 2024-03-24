@@ -330,9 +330,11 @@ def silver_cleaned_order_review(context, bronze_order_review: pl.DataFrame):
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
+
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         # spark_df.cache()
+        spark_df = spark_df.drop("review_comment_title")
         spark_df = spark_df.na.drop()
         spark_df = spark_df.dropDuplicates()
         context.log.info("Got Spark DataFrame")

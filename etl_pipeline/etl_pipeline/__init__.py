@@ -1,6 +1,6 @@
 import os
 from dagster import Definitions, load_assets_from_modules
-
+from dagstermill import ConfigurableLocalOutputNotebookIOManager
 
 from . import assets
 from .resources.minio_io_manager import MinIOIOManager
@@ -35,6 +35,7 @@ resources = {
     "mysql_io_manager": MySQLIOManager(MYSQL_CONFIG),
     "minio_io_manager": MinIOIOManager(MINIO_CONFIG),
     "spark_io_manager": SparkIOManager(SPARK_CONFIG),
+    "output_notebook_io_manager": ConfigurableLocalOutputNotebookIOManager(),
 }
 
 defs = Definitions(assets=load_assets_from_modules([assets]), resources=resources)
