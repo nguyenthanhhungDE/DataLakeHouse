@@ -37,6 +37,8 @@ Nếu dữ liệu mới không tồn tại, nó sẽ được thêm mới vào t
 Về mặt chức năng, append giữ nguyên dữ liệu đã có và chỉ thêm mới dữ liệu mới, overwrite ghi đè hoàn toàn lên dữ liệu đã có, trong khi upsert kết hợp cả việc cập nhật và thêm mới.
 
 Trong kiến trúc Data Lakehouse, có thể sử dụng các chiến lược khác nhau cho các lớp dữ liệu khác nhau như bạn đã nêu. Cụ thể:
+![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/ede03e55-1231-4d04-aa99-db770883a842)
+
 
 + Lớp Bronze:
 Thường là lớp chứa dữ liệu gốc, raw data, không làm thay đổi dữ liệu đã có.
