@@ -20,8 +20,11 @@ docker compose up -d
 Bronze Layer: Storing raw data.
 Silver Layer: Storing cleansed and conformed data.
 Gold Layer: Storing curated business-level tables.
+# 2.Loading Strategy
+![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/5002dd16-50f3-470a-a30d-bf36ca4ccb20)
 
-4. File Format: We store data in the data lake in file formats such as Parquet.
+
+5. File Format: We store data in the data lake in file formats such as Parquet.
 5.Visualize the data using metabase
 6.Create a book recommendation app using streamlit
 
