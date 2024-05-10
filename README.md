@@ -22,6 +22,31 @@ Silver Layer: Storing cleansed and conformed data.
 Gold Layer: Storing curated business-level tables.
 # 2.Loading Strategy
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/5002dd16-50f3-470a-a30d-bf36ca4ccb20)
+Trong lĩnh vực cơ sở dữ liệu, các thuật ngữ "append", "overwrite", và "upsert" đều liên quan đến cách thức xử lý dữ liệu khi thêm mới hoặc cập nhật dữ liệu trong một tập hợp đã tồn tại. Dưới đây là sự khác biệt chính giữa chúng:
+
++ Append (Thêm mới):
+Khi sử dụng chế độ append, dữ liệu mới được thêm vào cuối của tập hợp hiện có.
+Không có sự thay đổi hoặc ghi đè vào dữ liệu đã tồn tại.
++ Overwrite (Ghi đè):
+Trong chế độ ghi đè, dữ liệu mới sẽ ghi đè lên dữ liệu đã tồn tại trong tập hợp.
+Dữ liệu hiện có sẽ bị thay thế hoàn toàn bằng dữ liệu mới.
++ Upsert (Kết hợp Cập nhật và Thêm mới):
+Khi thực hiện upsert, hệ thống sẽ kiểm tra xem dữ liệu mới có tồn tại trong tập hợp hay không.
+Nếu dữ liệu mới đã tồn tại, nó sẽ được cập nhật.
+Nếu dữ liệu mới không tồn tại, nó sẽ được thêm mới vào tập hợp.
+Về mặt chức năng, append giữ nguyên dữ liệu đã có và chỉ thêm mới dữ liệu mới, overwrite ghi đè hoàn toàn lên dữ liệu đã có, trong khi upsert kết hợp cả việc cập nhật và thêm mới.
+
+Trong kiến trúc Data Lakehouse, có thể sử dụng các chiến lược khác nhau cho các lớp dữ liệu khác nhau như bạn đã nêu. Cụ thể:
+
++ Lớp Bronze:
+Thường là lớp chứa dữ liệu gốc, raw data, không làm thay đổi dữ liệu đã có.
+Thường sử dụng chiến lược append để thêm dữ liệu mới vào mà không làm thay đổi dữ liệu hiện có.
++ Lớp Silver:
+Lớp này thường đã trải qua quá trình tiền xử lý và làm sạch dữ liệu.
+Có thể sử dụng chiến lược overwrite để cập nhật dữ liệu trong lớp Silver bằng dữ liệu đã được xử lý mới nhất từ lớp Bronze.
++ Lớp Gold:
+Đây thường là lớp dữ liệu đã được xử lý hoàn chỉnh và được sử dụng cho mục đích phân tích và báo cáo.
+Có thể sử dụng chiến lược upsert để cập nhật dữ liệu trong lớp Gold, kết hợp cả việc cập nhật dữ liệu đã tồn tại và thêm mới dữ liệu khi cần thiết.
 
 
 5. File Format: We store data in the data lake in file formats such as Parquet.
