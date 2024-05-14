@@ -66,6 +66,11 @@ Bronze -> Silver -> Gold -> Platitum
 
 5. File Format: We store data in the data lake in file formats such as Parquet.
 5.Visualize the data using metabase
+![z5079403472495_9bdee68cd5aed330cc4dc38517df3666](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/36e3ea76-765d-4e74-b4b4-bb1e3f262d5b)
+![z5079403467324_439a49510a0dde79139ff679b4ae57e2](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/36c76d89-d28f-463f-b222-2ff74936c890)
+![z5079403470972_4e6625fb275595a235924b5f94a35b94](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/5a5820e0-6b67-45b1-8984-ad39d8a03ac5)
+
+
 6.Create a book recommendation app using streamlit
 
 
