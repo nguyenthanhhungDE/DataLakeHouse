@@ -52,11 +52,11 @@ Có thể sử dụng chiến lược upsert để cập nhật dữ liệu tron
 # Data Lineage:
 Bronze -> Silver -> Gold -> Platitum
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/3a53a80b-4ea1-4c91-8c81-a0ea879e987f)
-Bronze:
++ Bronze:
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/08550af1-47e7-49ef-8489-d4042e8e4467)
-Silver:
++ Silver:
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/722a58ee-97cd-4a82-b54c-04f324f1f3f8)
-Gold:
++ Gold:
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/4e530209-b520-4108-a82e-cf88a5e54dc2)
 
 
