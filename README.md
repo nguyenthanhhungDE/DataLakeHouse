@@ -9,9 +9,9 @@ Tiểu Luận Chuyên Ngành
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/9cce1acf-b865-4ec5-9897-d846e2909b1b)
 ### Data Quality
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/7d84a555-1442-4099-a1b8-3a296c3c614a)
---- 🥉 𝗕𝗿𝗼𝗻𝘇𝗲 𝗟𝗮𝘆𝗲𝗿: Đây là nơi đầu tiên tiếp nhận dữ liệu thô. Có thể coi đây như là môi trường tự nhiên của dữ liệu, chưa được chạm vào và xử lý.
---- 🥈 𝗦𝗶𝗹𝘃𝗲𝗿 𝗟𝗮𝘆𝗲𝗿: Sau khi trải qua quá trình clean, validation và schema systematization, dữ liệu sẽ được chuyển đến Lớp Bạc. Tại đây, dữ liệu được mài giũa và chuẩn bị sẵn sàng để Analysis, trở thành nguồn tài nguyên đáng tin cậy cho những hiểu biết sâu sắc hơn.
---- 🥇 𝗚𝗼𝗹𝗱 𝗟𝗮𝘆𝗲𝗿: Đây là giai đoạn tinh chế cuối cùng, nơi dữ liệu được aggregated, modeled, and tailored (điều chỉnh) để phù hợp với các kịch bản kinh doanh khác nhau. Trong Lớp Vàng, dữ liệu đạt được giá trị cao nhất, trở thành nguồn tài nguyên trực tiếp và thiết yếu cho strategic decision-making.
+###### 🥉 𝗕𝗿𝗼𝗻𝘇𝗲 𝗟𝗮𝘆𝗲𝗿: Đây là nơi đầu tiên tiếp nhận dữ liệu thô. Có thể coi đây như là môi trường tự nhiên của dữ liệu, chưa được chạm vào và xử lý.
+###### 🥈 𝗦𝗶𝗹𝘃𝗲𝗿 𝗟𝗮𝘆𝗲𝗿: Sau khi trải qua quá trình clean, validation và schema systematization, dữ liệu sẽ được chuyển đến Lớp Bạc. Tại đây, dữ liệu được mài giũa và chuẩn bị sẵn sàng để Analysis, trở thành nguồn tài nguyên đáng tin cậy cho những hiểu biết sâu sắc hơn.
+###### 🥇 𝗚𝗼𝗹𝗱 𝗟𝗮𝘆𝗲𝗿: Đây là giai đoạn tinh chế cuối cùng, nơi dữ liệu được aggregated, modeled, and tailored (điều chỉnh) để phù hợp với các kịch bản kinh doanh khác nhau. Trong Lớp Vàng, dữ liệu đạt được giá trị cao nhất, trở thành nguồn tài nguyên trực tiếp và thiết yếu cho strategic decision-making.
 #### Lakehouse Architecture:
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/4b626f3c-539e-4afa-9fcb-6f96605f267a)
 #### Prepare infrastructure
