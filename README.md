@@ -7,7 +7,7 @@ Minio will provide distributed object storage to store the data, Delta Lake will
 Tiểu Luận Chuyên Ngành
 ### System Architecture
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/9cce1acf-b865-4ec5-9897-d846e2909b1b)
-### Data Quatity
+### Data Quality
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/7d84a555-1442-4099-a1b8-3a296c3c614a)
 #### Lakehouse Architecture:
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/4b626f3c-539e-4afa-9fcb-6f96605f267a)
