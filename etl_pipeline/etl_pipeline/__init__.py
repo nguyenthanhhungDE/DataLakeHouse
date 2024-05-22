@@ -3,6 +3,8 @@ from dagster import Definitions, load_assets_from_modules
 from dagstermill import ConfigurableLocalOutputNotebookIOManager
 
 from . import assets
+from .job import reload_data
+from .schedule import  reload_data_schedule
 from .resources.minio_io_manager import MinIOIOManager
 from .resources.mysql_io_manager import MySQLIOManager
 from .resources.spark_io_manager import SparkIOManager
@@ -38,4 +40,7 @@ resources = {
     "output_notebook_io_manager": ConfigurableLocalOutputNotebookIOManager(),
 }
 
-defs = Definitions(assets=load_assets_from_modules([assets]), resources=resources)
+defs = Definitions(assets=load_assets_from_modules([assets]),
+                       jobs=[reload_data],
+                       schedules=[reload_data_schedule],
+                       resources=resources,)
