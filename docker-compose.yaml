@@ -284,6 +284,27 @@ services:
     networks:
       - data_network
 
+  streamlit:
+    container_name: streamlit
+    build:
+      context: ./docker_image/streamlit
+      dockerfile: Dockerfile
+    image: streamlit:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_ACCESS_KEY_ID=minio
+      - AWS_SECRET_ACCESS_KEY=minio123
+    volumes:
+      # - './data:/usr/src/app/data:delegated'
+      # - './project:/usr/src/app/project:delegated'
+      - ./app:/app
+    # environment:
+    #   - USER_ID=1000
+    #   - GROUP_ID=1000
+    networks:
+     - data_network
 networks:
   data_network:
     driver: bridge

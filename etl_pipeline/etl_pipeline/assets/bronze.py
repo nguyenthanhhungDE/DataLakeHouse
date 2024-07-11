@@ -1,6 +1,7 @@
 from dagster import asset, AssetIn, Output, StaticPartitionsDefinition
 from datetime import datetime
 import polars as pl
+import pandas as pd
 
 COMPUTE_KIND = "SQL"
 LAYER = "bronze"
@@ -176,7 +177,13 @@ def bronze_order_review(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM order_reviews;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
     context.log.info(f"Table extracted with shape: {df_data.shape}")
-
+    #data = [
+    #    ["An", 23, "Hà Nội"],
+    #    ["Bình", 21, "Đà Nẵng"],
+    #    ["Chi", 22, "Hồ Chí Minh"],
+    #    ["Dũng", 24, "Hải Phòng"],
+    #]
+    #df_data = pd.DataFrame(data, columns=["Tên", "Tuổi", "Thành Phố"])
     return Output(
         value=df_data,
         metadata={
