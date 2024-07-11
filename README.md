@@ -6,7 +6,8 @@ Minio will provide distributed object storage to store the data, Delta Lake will
 # DataLakeHouse
 Tiểu Luận Chuyên Ngành
 ### System Architecture
-![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/9cce1acf-b865-4ec5-9897-d846e2909b1b)
+![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/bc9395b5-dfd8-40a9-9f6d-ad6d228e3aa8)
+
 ### Data Quality
 ![image](https://github.com/nguyenthanhhungDE/DataLakeHouse/assets/134383281/7d84a555-1442-4099-a1b8-3a296c3c614a)
 ###### 🥉 𝗕𝗿𝗼𝗻𝘇𝗲 𝗟𝗮𝘆𝗲𝗿: Đây là nơi đầu tiên tiếp nhận dữ liệu thô. Có thể coi đây như là môi trường tự nhiên của dữ liệu, chưa được chạm vào và xử lý.
