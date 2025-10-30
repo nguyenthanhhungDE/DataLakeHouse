@@ -11,14 +11,16 @@ from pyspark.sql import DataFrame
 from ..resources.spark_io_manager import get_spark_session
 
 
-COMPUTE_KIND = "PySpark"
+COMPUTE_KIND = "deltalake"
 LAYER = "gold"
 
 
 @asset(
     description="Split book table to get basic info",
     ins={
-        "silver_cleaned_customer": AssetIn(key_prefix=["silver", "customer"]),
+        "silver_stg_customer": AssetIn(
+            key_prefix=["silver", "customer"],
+        ),
         "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),
     },
     io_manager_key="spark_io_manager",
@@ -26,9 +28,7 @@ LAYER = "gold"
     compute_kind="PySpark",
     group_name="gold",
 )
-def dim_customer(
-    context, silver_cleaned_customer, silver_cleaned_geolocation: DataFrame
-):
+def dim_customer(context, silver_stg_customer, silver_cleaned_geolocation: DataFrame):
     """
     Split book table to get basic info
     """
@@ -41,29 +41,24 @@ def dim_customer(
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS gold")
 
-        customer = silver_cleaned_customer
+        customer = silver_stg_customer
         geolocation = silver_cleaned_geolocation
-        # Thực hiện left join
         joined_df = customer.join(
             geolocation,
             customer["customer_zip_code_prefix"]
             == geolocation["geolocation_zip_code_prefix"],
             how="left",
         )
-        # Đổi tên các cột
         joined_df = joined_df.withColumnRenamed(
             "geolocation_lat", "customer_lat"
         ).withColumnRenamed("geolocation_lng", "customer_lng")
 
-        # Thêm cột customer_city
         joined_df = joined_df.withColumn("customer_city", joined_df["geolocation_city"])
 
-        # Thêm cột customer_state
         joined_df = joined_df.withColumn(
             "customer_state", joined_df["geolocation_state"]
         )
 
-        # Xóa các cột không cần thiết
         joined_df = joined_df.drop(
             "geolocation_city",
             "geolocation_state",
@@ -71,7 +66,6 @@ def dim_customer(
             "geolocation_zip_code_prefix",
         )
 
-        # Lọc các dòng trùng lặp dựa trên cột customer_id
         joined_df = joined_df.dropDuplicates(subset=["customer_id"])
         context.log.info("Got spark DataFrame, getting neccessary columns")
 

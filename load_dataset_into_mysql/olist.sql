@@ -89,7 +89,6 @@ CREATE TABLE payments (
     FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
 
-
 CREATE TABLE order_reviews (
     review_id varchar(64),
     order_id varchar(64) ,
