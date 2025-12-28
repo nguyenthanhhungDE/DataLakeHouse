@@ -51,23 +51,24 @@ def silver_cleaned_customer(context, bronze_customer: pl.DataFrame):
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
 
-        insert_job_log(
-            spark=spark,
-            job_name="silver_cleaned_customer",
-            layer="silver",
-            source="bronze.customer",
-            target_table="silver.customer_cleaned",
-            merge_key="customer_id",
-            load_mode="incremental",
-            schedule="daily",
-            owner="hung.nguyen",
-            description="Clean and deduplicate customer data",
-        )
+        # insert_job_log(
+        #     spark=spark,
+        #     job_name="silver_cleaned_customer",
+        #     layer="silver",
+        #     source="bronze.customer",
+        #     target_table="silver.customer_cleaned",
+        #     merge_key="customer_id",
+        #     load_mode="incremental",
+        #     schedule="daily",
+        #     owner="hung.nguyen",
+        #     description="Clean and deduplicate customer data",
+        # )
 
         pandas_df = bronze_customer.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
+        # spark.sql(f"DROP SCHEMA  silver")
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
         spark_df = spark_df.na.drop()

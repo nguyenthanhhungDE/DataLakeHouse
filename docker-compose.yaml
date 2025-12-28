@@ -40,27 +40,54 @@ services:
     expose: 
       - "7077"
     environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
+      # - SPARK_MODE=master
+      # - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      # - SPARK_RPC_ENCRYPTION_ENABLED=no
+      # - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      # - SPARK_SSL_ENABLED=no
+      # - SPARK_USER=spark
       - SPARK_USER=spark
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
     volumes:
-      - ./docker_image/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - ./docker_image/spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+      # - ./docker_image/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      # - ./docker_image/spark/conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+      - ./docker_image/spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./docker_image/spark/conf/log4j.properties:/opt/spark/conf/log4j.properties
     networks:
       - data_network
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master
 
-  spark-worker-1:
-    image: docker.io/bitnami/spark:3.3.2
-    container_name: "spark-worker-1"
-    env_file:
-      - .env
+
+
+  spark-worker:
+    build:
+      context: ./docker_image/spark
+      dockerfile: ./Dockerfile
+    container_name: "spark-worker"
     depends_on:
       - spark-master
+    environment:
+      - SPARK_USER=spark
+      - SPARK_WORKER_WEBUI_PORT=8081
+    volumes:
+      - ./docker_image/spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./docker_image/spark/conf/log4j.properties:/opt/spark/conf/log4j.properties
     networks:
       - data_network
+    # Chỉ định lệnh chạy Worker và trỏ về node Master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+
+  # spark-worker-1:
+  #   # image: docker.io/bitnami/spark:3.3.2
+  #   image: apache/spark:3.4.1
+  #   container_name: "spark-worker-1"
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - data_network
 
   # spark-worker-2:
   #   image: docker.io/bitnami/spark:3.3
@@ -74,26 +101,26 @@ services:
   
 
 
-  spark-notebook:
-    build: 
-      context: ./notebooks
-      dockerfile: ./Dockerfile
-    container_name: "spark-notebook"
-    user: root
-    environment:
-      - JUPYTER_ENABLE_LAB="yes"
-      - GRANT_SUDO="yes"
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/ 
-      - AWS_ACCESS_KEY_ID=minio
-      - AWS_SECRET_ACCESS_KEY=minio123
-    volumes:
-      - ./notebooks/work:/home/jovyan/work
-      - ./notebooks/conf/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
-    ports:
-      - "8888:8888"
-      - "4040:4040"
-    networks:
-      - data_network
+  # spark-notebook:
+  #   build: 
+  #     context: ./notebooks
+  #     dockerfile: ./Dockerfile
+  #   container_name: "spark-notebook"
+  #   user: root
+  #   environment:
+  #     - JUPYTER_ENABLE_LAB="yes"
+  #     - GRANT_SUDO="yes"
+  #     - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/ 
+  #     - AWS_ACCESS_KEY_ID=minio
+  #     - AWS_SECRET_ACCESS_KEY=minio123
+  #   volumes:
+  #     - ./notebooks/work:/home/jovyan/work
+  #     - ./notebooks/conf/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
+  #   ports:
+  #     - "8888:8888"
+  #     - "4040:4040"
+  #   networks:
+  #     - data_network
 
 
   metabase:

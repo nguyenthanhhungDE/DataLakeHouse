@@ -11,18 +11,64 @@ import json
 def get_spark_session(config, run_id="Spark IO Manager"):
     executor_memory = "1g" if run_id != "Spark IO Manager" else "1500m"
     try:
+        # spark = (
+        #     SparkSession.builder.master("spark://spark-master:7077")
+        #     .appName(run_id)
+        #     # .config(
+        #     #     "spark.jars",
+        #     #     "/usr/local/spark/jars/delta-core_2.12-2.2.0.jar,/usr/local/spark/jars/hadoop-aws-3.3.2.jar,/usr/local/spark/jars/delta-storage-2.2.0.jar,/usr/local/spark/jars/aws-java-sdk-1.12.367.jar,/usr/local/spark/jars/s3-2.18.41.jar,/usr/local/spark/jars/aws-java-sdk-bundle-1.11.1026.jar",
+        #     # )
+        #     # .config(
+        #     #     "spark.sql.catalog.spark_catalog",
+        #     #     "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        #     # )
+        #     .config(
+        #         "spark.jars",
+        #         "/opt/spark/jars/delta-core_2.12-2.3.0.jar,/opt/spark/jars/delta-storage-2.3.0.jar",
+        #     )
+        #     .config("spark.executor.extraClassPath", "/opt/spark/jars/*")
+        #     .config("spark.driver.extraClassPath", "/opt/spark/jars/*")
+        #     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        #     .config("spark.hadoop.fs.s3a.endpoint", f"http://{config['endpoint_url']}")
+        #     .config("spark.hadoop.fs.s3a.access.key", str(config["minio_access_key"]))
+        #     .config("spark.hadoop.fs.s3a.secret.key", str(config["minio_secret_key"]))
+        #     .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        #     .config("spark.hadoop.fs.connection.ssl.enabled", "false")
+        #     .config(
+        #         "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
+        #     )
+        #     .config(
+        #         "spark.hadoop.fs.s3a.aws.credentials.provider",
+        #         "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
+        #     )
+        #     .config("spark.sql.warehouse.dir", f"s3a://lakehouse/")
+        #     .config("hive.metastore.uris", "thrift://hive-metastore:9083")
+        #     .config("spark.sql.catalogImplementation", "hive")
+        #     .enableHiveSupport()
+        #     .getOrCreate()
+        # )
+
         spark = (
             SparkSession.builder.master("spark://spark-master:7077")
             .appName(run_id)
+            # 1. Khai báo JARs: Nên thêm cả AWS Bundle vào đây để Spark khởi tạo S3A ngay từ đầu
             .config(
                 "spark.jars",
-                "/usr/local/spark/jars/delta-core_2.12-2.2.0.jar,/usr/local/spark/jars/hadoop-aws-3.3.2.jar,/usr/local/spark/jars/delta-storage-2.2.0.jar,/usr/local/spark/jars/aws-java-sdk-1.12.367.jar,/usr/local/spark/jars/s3-2.18.41.jar,/usr/local/spark/jars/aws-java-sdk-bundle-1.11.1026.jar",
+                "/opt/spark/jars/delta-core_2.12-2.3.0.jar,"
+                "/opt/spark/jars/delta-storage-2.3.0.jar,"
+                "/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar",
             )
+            # 2. CẤU HÌNH QUAN TRỌNG NHẤT: Ép Spark sử dụng Delta Catalog cho Hive Metastore
             .config(
                 "spark.sql.catalog.spark_catalog",
                 "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             )
+            # 3. ClassPath cho Driver và Executor
+            .config("spark.executor.extraClassPath", "/opt/spark/jars/*")
+            .config("spark.driver.extraClassPath", "/opt/spark/jars/*")
+            # 4. Delta Extensions
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+            # 5. Cấu hình kết nối MinIO (S3A)
             .config("spark.hadoop.fs.s3a.endpoint", f"http://{config['endpoint_url']}")
             .config("spark.hadoop.fs.s3a.access.key", str(config["minio_access_key"]))
             .config("spark.hadoop.fs.s3a.secret.key", str(config["minio_secret_key"]))
@@ -35,7 +81,8 @@ def get_spark_session(config, run_id="Spark IO Manager"):
                 "spark.hadoop.fs.s3a.aws.credentials.provider",
                 "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
             )
-            .config("spark.sql.warehouse.dir", f"s3a://lakehouse/")
+            # 6. Warehouse và Metastore
+            .config("spark.sql.warehouse.dir", "s3a://lakehouse/")
             .config("hive.metastore.uris", "thrift://hive-metastore:9083")
             .config("spark.sql.catalogImplementation", "hive")
             .enableHiveSupport()

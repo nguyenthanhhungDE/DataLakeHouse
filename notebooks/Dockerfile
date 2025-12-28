@@ -27,3 +27,40 @@ RUN curl -O https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.18.41/s3-
 
 RUN pip install minio==7.1.16 \
     dagster==1.1.20 
+
+
+# FROM jupyter/all-spark-notebook:python-3.9.13
+
+# USER root 
+
+# # 1. Cài đặt Spark 3.3.2 và đồng bộ đường dẫn về /opt/spark
+# RUN curl -O https://archive.apache.org/dist/spark/spark-3.3.2/spark-3.3.2-bin-hadoop3.tgz \
+#     && tar zxvf spark-3.3.2-bin-hadoop3.tgz \
+#     && rm -rf spark-3.3.2-bin-hadoop3.tgz \
+#     && mv spark-3.3.2-bin-hadoop3/ /opt/spark \
+#     && ln -s /opt/spark /usr/local/spark
+
+# # 2. Tải JARs đồng bộ (5 file chuẩn - Xóa bỏ các bản AWS lẻ gây lỗi)
+# WORKDIR /opt/spark/jars
+# RUN curl -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar \
+#     && curl -O https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar \
+#     && curl -O https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.3.0/delta-core_2.12-2.3.0.jar \
+#     && curl -O https://repo1.maven.org/maven2/io/delta/delta-storage/2.3.0/delta-storage-2.3.0.jar \
+#     && curl -O https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.19/mysql-connector-java-8.0.19.jar
+
+# # 3. Cài đặt thư viện Python đồng bộ
+# RUN pip install --no-cache-dir \
+#     minio==7.1.16 \
+#     dagster==1.1.20 \
+#     pyspark==3.3.2 \
+#     delta-spark==2.3.0
+
+# # 4. Thiết lập biến môi trường và quyền hạn cho người dùng jupyter (jovyan)
+# ENV SPARK_HOME=/opt/spark
+# ENV PATH=$SPARK_HOME/bin:$PATH
+# ENV PYSPARK_PYTHON=python3
+
+# RUN chown -R jovyan:users /opt/spark
+
+# USER jovyan
+# WORKDIR /home/jovyan
