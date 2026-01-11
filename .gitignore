@@ -3,6 +3,7 @@ dagster_home/.telemetry/
 dagster_home/compute_logs/
 dagster_home/logs/event.log
 dagster_home/logs/
+etl_pipeline/etl_pipeline/assets/__pycache__/
 
 minio/
 app/pages/3_👩‍💻Chatbot.py
