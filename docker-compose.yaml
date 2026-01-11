@@ -149,26 +149,11 @@ services:
     #   - metabasedata:/metabase-data
     # env_file:
     #   - .env
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: metabase
-      MB_DB_PORT: 5432
-      MB_DB_USER: admin
-      MB_DB_PASS: admin
-      MB_DB_HOST: de_psql
-    healthcheck:
-      test: curl --fail -I http://localhost:3000/api/health || exit 1
-      interval: 15s
-      timeout: 5s
-      retries: 5
-    # volumes:
-    #   - metabasedata:/metabase-data
     networks:
       - data_network
   
   mysql:
     image: mysql:8.0
-    container_name: mysql
     container_name: mysql
     volumes:
       - mysql_h:/var/lib/mysql
@@ -184,13 +169,6 @@ services:
       - MYSQL_USER=admin
       - MYSQL_PASSWORD=admin
       - MYSQL_ROOT_PASSWORD=admin
-    # env_file: .env
-    environment:
-      - MYSQL_DATABASE=mlflowdb
-      - MYSQL_ROOT_USER=root
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=admin
-      - MYSQL_ROOT_PASSWORD=admin
     networks:
       - data_network
   
@@ -213,30 +191,10 @@ services:
     # environment:#   - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/#   - AWS_ACCESS_KEY_ID=minio#   - AWS_SECRET_ACCESS_KEY=minio123
     command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --artifacts-destination s3://mlflow/ --host 0.0.0.0
   
-  web:
-    restart: always
-    build: ./docker_image/mlflow
-    image: mlflow
-    container_name: mlflow_server
-    depends_on:
-      - mc
-      - mysql
-    ports:
-      - "7893:5000"
-    networks:
-      - data_network
-    environment:   
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/ 
-      - AWS_ACCESS_KEY_ID=minio
-      - AWS_SECRET_ACCESS_KEY=minio123
-    # environment:#   - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/#   - AWS_ACCESS_KEY_ID=minio#   - AWS_SECRET_ACCESS_KEY=minio123
-    command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --artifacts-destination s3://mlflow/ --host 0.0.0.0
 
   mariadb:
     image: mariadb:10.5.16
     container_name: mariadb
-    volumes:
-      - mariadb:/var/lib/mysql
     volumes:
       - mariadb:/var/lib/mysql
     ports:
@@ -250,7 +208,6 @@ services:
     container_name: hive-metastore
     hostname: hive-metastore
     image: "bitsondatadev/hive-metastore:latest"
-    entrypoint: /entrypoint.sh
     entrypoint: /entrypoint.sh
     ports:
       - "9083:9083"
@@ -303,25 +260,6 @@ services:
     networks:
       - data_network
   
-  spark-thrift-server:
-    build:
-      context: ./docker_image/spark
-      dockerfile: ./Dockerfile
-    container_name: "spark-thrift-server"
-    restart: always
-    depends_on:
-      - spark-master
-      - hive-metastore
-    ports:
-      - "4041:4040"
-      - "10000:10000"
-    command: sh -c "
-      sleep 10 && ./sbin/start-thriftserver.sh --driver-java-options '-Dhive.metastore.uris=thrift://hive-metastore:9083' --master spark://spark-master:7077 --executor-memory 1G --total-executor-cores 1 --driver-memory 1G"
-    volumes:
-      - ./docker_image/spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - ./docker_image/spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-    networks:
-      - data_network
 
   de_dagster_dagit:
     build:
@@ -422,8 +360,3 @@ volumes:
   mariadb: {}
   # metabasedata: {}
 
-  postgres_data_h: {}
-  mysql_h: {}
-  miniodata: {}
-  mariadb: {}
-  # metabasedata: {}
