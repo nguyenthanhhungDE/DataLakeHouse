@@ -27,6 +27,7 @@ RUN curl -O https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.18.41/s3-
 
 RUN pip install minio==7.1.16 \
     dagster==1.1.20 
+<<<<<<< HEAD
 
 
 # FROM jupyter/all-spark-notebook:python-3.9.13
@@ -64,3 +65,5 @@ RUN pip install minio==7.1.16 \
 
 # USER jovyan
 # WORKDIR /home/jovyan
+=======
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e

@@ -51,7 +51,10 @@ def get_spark_session(config, run_id="Spark IO Manager"):
         spark = (
             SparkSession.builder.master("spark://spark-master:7077")
             .appName(run_id)
+<<<<<<< HEAD
             # 1. Khai báo JARs: Nên thêm cả AWS Bundle vào đây để Spark khởi tạo S3A ngay từ đầu
+=======
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
             .config(
                 "spark.jars",
                 "/opt/spark/jars/delta-core_2.12-2.3.0.jar,"
@@ -77,12 +80,17 @@ def get_spark_session(config, run_id="Spark IO Manager"):
             .config(
                 "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
             )
+<<<<<<< HEAD
             .config(
                 "spark.hadoop.fs.s3a.aws.credentials.provider",
                 "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
             )
             # 6. Warehouse và Metastore
             .config("spark.sql.warehouse.dir", "s3a://lakehouse/")
+=======
+            .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider')
+            .config('spark.sql.warehouse.dir', f's3a://lakehouse/')
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
             .config("hive.metastore.uris", "thrift://hive-metastore:9083")
             .config("spark.sql.catalogImplementation", "hive")
             .enableHiveSupport()
@@ -97,6 +105,7 @@ class SparkIOManager(IOManager):
     def __init__(self, config):
         self._config = config
 
+<<<<<<< HEAD
     # def handle_output(self, context: OutputContext, obj):
     #     """
     #     Enhanced version:
@@ -104,6 +113,12 @@ class SparkIOManager(IOManager):
     #     - If asset returns df only: overwrite (full load)
     #     """
     #     context.log.info("🚀 [SparkIOManager] Handling output ...")
+=======
+    def handle_output(self, context: OutputContext, obj: DataFrame):
+        """
+            Write output to s3a (aka minIO) as parquet file
+        """
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
 
     #     # 🧩 Phân tách input
     #     if isinstance(obj, tuple):
@@ -111,6 +126,7 @@ class SparkIOManager(IOManager):
     #     else:
     #         df, merge_key = obj, None
 
+<<<<<<< HEAD
     #     layer, _, table = context.asset_key.path
     #     table_name = table.replace(f"{layer}_", "")
     #     table_full = f"{layer}.{table_name}"
@@ -187,6 +203,15 @@ class SparkIOManager(IOManager):
             return True
         except Exception:
             return False
+=======
+        layer, _,table = context.asset_key.path
+        table_name = str(table.replace(f"{layer}_", ""))
+        try:
+            obj.write.format("delta").mode("overwrite").saveAsTable(f"{layer}.{table_name}")
+            context.log.debug(f"Saved {table_name} to {layer}")
+        except Exception as e:
+            raise Exception(f"(Spark handle_output) Error while writing output: {e}")
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
 
     def load_input(self, context: InputContext) -> DataFrame:
         """
@@ -195,9 +220,15 @@ class SparkIOManager(IOManager):
 
         # E.g context.asset_key.path: ['silver', 'goodreads', 'book']
         context.log.debug(f"Loading input from {context.asset_key.path}...")
+<<<<<<< HEAD
         layer, _, table = context.asset_key.path
         table_name = str(table.replace(f"{layer}_", ""))
         context.log.debug(f"loading input from {layer} layer - table {table_name}...")
+=======
+        layer,_,table = context.asset_key.path
+        table_name = str(table.replace(f"{layer}_",""))
+        context.log.debug(f'loading input from {layer} layer - table {table_name}...')
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
 
         try:
             with get_spark_session(self._config) as spark:
@@ -207,6 +238,7 @@ class SparkIOManager(IOManager):
                 return df
         except Exception as e:
             raise Exception(f"Error while loading input: {e}")
+<<<<<<< HEAD
 
     # 🔹 NEW FUNCTION: chỉ dùng cho layer "silver"
     # def handle_output_silver_layer(self, context: OutputContext, df: DataFrame):
@@ -317,3 +349,5 @@ class SparkIOManager(IOManager):
 
             except Exception as e:
                 raise Exception(f"(Spark handle_output_silver_layer) Error: {e}")
+=======
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
