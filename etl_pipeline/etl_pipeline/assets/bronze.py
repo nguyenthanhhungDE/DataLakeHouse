@@ -131,7 +131,6 @@ def bronze_seller(context) -> Output[pl.DataFrame]:
 )
 # Extract data từ mysql
 def bronze_product(context) -> Output[pl.DataFrame]:
-def bronze_product(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM products;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
     context.log.info(f"Table extracted with shape: {df_data.shape}")
@@ -158,7 +157,6 @@ def bronze_product(context) -> Output[pl.DataFrame]:
     group_name=LAYER,
 )
 # Extract data từ mysql
-def bronze_order(context) -> Output[pl.DataFrame]:
 def bronze_order(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM orders;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
@@ -187,7 +185,6 @@ def bronze_order(context) -> Output[pl.DataFrame]:
 )
 # Extract data từ mysql
 def bronze_order_item(context) -> Output[pl.DataFrame]:
-def bronze_order_item(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM order_items;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
     context.log.info(f"Table extracted with shape: {df_data.shape}")
@@ -215,7 +212,6 @@ def bronze_order_item(context) -> Output[pl.DataFrame]:
 )
 # Extract data từ mysql
 def bronze_payment(context) -> Output[pl.DataFrame]:
-def bronze_payment(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM payments;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
     context.log.info(f"Table extracted with shape: {df_data.shape}")
@@ -242,7 +238,6 @@ def bronze_payment(context) -> Output[pl.DataFrame]:
     group_name=LAYER,
 )
 # Extract data từ mysql
-def bronze_order_review(context) -> Output[pl.DataFrame]:
 def bronze_order_review(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM order_reviews;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
@@ -276,7 +271,6 @@ def bronze_order_review(context) -> Output[pl.DataFrame]:
     group_name=LAYER,
 )
 # Extract data từ mysql
-def bronze_product_category(context) -> Output[pl.DataFrame]:
 def bronze_product_category(context) -> Output[pl.DataFrame]:
     query = "SELECT * FROM product_category_name_translation;"
     df_data = context.resources.mysql_io_manager.extract_data(query)
