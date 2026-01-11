@@ -38,9 +38,12 @@ class MinIOIOManager(IOManager):
     def _get_path(self, context: Union[InputContext, OutputContext]):
         # context.asset_key.path: ['bronze', 'schema_name', 'table_name']
         layer, schema, table = context.asset_key.path
+<<<<<<< HEAD
+=======
 
         context.log.debug(context.asset_key.path)
         # note: bronze/schema_name/table_name
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
         key = "/".join([layer, schema, table.replace(f"{layer}_", "")])
         context.log.debug(key)
         # note: /tmp/file_bronze_schema_table_xxxxxxx.parquet
@@ -55,7 +58,6 @@ class MinIOIOManager(IOManager):
             # /tmp/file_bronze_schema_table_xxxxxxxxxx.parquet
             return os.path.join(key, f"{partition_str}.parquet"), tmp_file_path
         else:
-            # bronze/schema/table.parquet
             return f"{key}.parquet", tmp_file_path
 
     def handle_output(self, context: OutputContext, obj: pl.DataFrame):
@@ -95,8 +97,11 @@ class MinIOIOManager(IOManager):
 
         try:
             with connect_minio(self._config) as client:
+<<<<<<< HEAD
+=======
 
                 # Make bucket if not exists
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
                 make_bucket(client, bucket_name)
 
                 # Ex: bucket_name: lakehouse

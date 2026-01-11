@@ -10,6 +10,7 @@ from pyspark.sql.types import *
 from pyspark.sql import DataFrame
 from datetime import datetime, timedelta
 from ..resources.spark_io_manager import get_spark_session
+from .etl_job.insert_job_log import insert_job_log
 
 
 COMPUTE_KIND = "PySpark"
@@ -30,6 +31,8 @@ YEARLY = StaticPartitionsDefinition(
     io_manager_key="spark_io_manager",
     key_prefix=["silver", "customer"],
     compute_kind=COMPUTE_KIND,
+    # compute_kind={"python", "snowflake"},
+    # kinds={"python", "snowflake"},
     group_name=LAYER,
 )
 def silver_cleaned_customer(context, bronze_customer: pl.DataFrame):
@@ -47,18 +50,29 @@ def silver_cleaned_customer(context, bronze_customer: pl.DataFrame):
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         # Convert bronze_book from polars DataFrame to Spark DataFrame
+
+        # insert_job_log(
+        #     spark=spark,
+        #     job_name="silver_cleaned_customer",
+        #     layer="silver",
+        #     source="bronze.customer",
+        #     target_table="silver.customer_cleaned",
+        #     merge_key="customer_id",
+        #     load_mode="incremental",
+        #     schedule="daily",
+        #     owner="hung.nguyen",
+        #     description="Clean and deduplicate customer data",
+        # )
+
         pandas_df = bronze_customer.to_pandas()
         context.log.debug(
             f"Converted to pandas DataFrame with shape: {pandas_df.shape}"
         )
+        # spark.sql(f"DROP SCHEMA  silver")
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS silver")
         spark_df = spark.createDataFrame(pandas_df)
-        spark_df = spark_df.dropDuplicates()
         spark_df = spark_df.na.drop()
-        # spark_df.cache()
         context.log.info("Got Spark DataFrame")
-
-        # spark_df.unpersist()
 
         return Output(
             value=spark_df,
@@ -67,6 +81,7 @@ def silver_cleaned_customer(context, bronze_customer: pl.DataFrame):
                 "row_count": spark_df.count(),
                 "column_count": len(spark_df.columns),
                 "columns": spark_df.columns,
+                "merge_key": "customer_id",
             },
         )
 
@@ -98,6 +113,20 @@ def silver_cleaned_seller(context, bronze_seller: pl.DataFrame):
     context.log.debug("Start creating spark session")
 
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
+
+        insert_job_log(
+            spark=spark,
+            job_name="silver_cleaned_customer",
+            layer="silver",
+            source="bronze.customer",
+            target_table="silver.customer_cleaned",
+            merge_key="customer_id",
+            load_mode="incremental",
+            schedule="daily",
+            owner="hung.nguyen",
+            description="Clean and deduplicate customer data",
+        )
+
         # Convert bronze_book from polars DataFrame to Spark DataFrame
         pandas_df = bronze_seller.to_pandas()
         context.log.debug(

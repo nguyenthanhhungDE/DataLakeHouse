@@ -1,7 +1,8 @@
 CREATE DATABASE olist;
 USE olist;
 
-CREATE TABLE product_category_name_translation (
+CREATE TABLE product_category_name_translation
+(
     product_category_name varchar(64),
     product_category_name_english varchar(64),
     PRIMARY KEY (product_category_name)
@@ -15,7 +16,12 @@ CREATE TABLE product_category_name_translation (
 -- #    geolocation_state VARCHAR(64) NOT NULL, 
 -- #    PRIMARY KEY (geolocation_zip_code_prefix)
 -- #);
+<<<<<<< HEAD
+CREATE TABLE geolocation
+(
+=======
 CREATE TABLE geolocation (
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
     geolocation_zip_code_prefix INT,
     geolocation_lat FLOAT ,
     geolocation_lng FLOAT ,
@@ -23,7 +29,8 @@ CREATE TABLE geolocation (
     geolocation_state VARCHAR(64)
 );
 
-CREATE TABLE sellers (
+CREATE TABLE sellers
+(
     seller_id varchar(64)  ,
     seller_zip_code_prefix INT ,
     seller_city varchar(64) ,
@@ -31,16 +38,18 @@ CREATE TABLE sellers (
     PRIMARY KEY (seller_id)
 );
 
-CREATE TABLE customers (
+CREATE TABLE customers
+(
     customer_id varchar(64) ,
     customer_unique_id varchar(32) ,
     customer_zip_code_prefix INT,
     customer_city varchar(64) ,
     customer_state varchar(64) ,
-	PRIMARY KEY (customer_id)
+    PRIMARY KEY (customer_id)
 );
 
-CREATE TABLE products (
+CREATE TABLE products
+(
     product_id varchar(64) ,
     product_category_name varchar(64) ,
     product_name_length int ,
@@ -54,7 +63,8 @@ CREATE TABLE products (
     FOREIGN KEY (product_category_name) REFERENCES product_category_name_translation(product_category_name)
 );
 
-CREATE TABLE orders (
+CREATE TABLE orders
+(
     order_id varchar(64) ,
     customer_id varchar(64) ,
     order_status varchar(32) ,
@@ -63,12 +73,17 @@ CREATE TABLE orders (
     order_delivered_carrier_date date ,
     order_delivered_customer_date date ,
     order_estimated_delivery_date date ,
+<<<<<<< HEAD
+    PRIMARY KEY (order_id),
+=======
 	PRIMARY KEY (order_id),
+>>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
-CREATE TABLE order_items (
-	order_id varchar(64),
+CREATE TABLE order_items
+(
+    order_id varchar(64),
     order_item_id int,
     product_id varchar(64),
     seller_id varchar(64),
@@ -80,7 +95,8 @@ CREATE TABLE order_items (
     FOREIGN KEY (seller_id) REFERENCES sellers(seller_id)
 );
 
-CREATE TABLE payments (
+CREATE TABLE payments
+(
     order_id varchar(64) ,
     payment_sequential int ,
     payment_type varchar(32) ,
@@ -89,7 +105,8 @@ CREATE TABLE payments (
     FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
 
-CREATE TABLE order_reviews (
+CREATE TABLE order_reviews
+(
     review_id varchar(64),
     order_id varchar(64) ,
     review_score int ,

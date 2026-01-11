@@ -1,6 +1,20 @@
 dagster_home/.nux/
 dagster_home/.telemetry/
 dagster_home/compute_logs/
+dagster_home/logs/event.log
 dagster_home/logs/
+etl_pipeline/etl_pipeline/assets/__pycache__/
+
+
+# Python cache
+__pycache__/
+*.pyc
+# Python
+**/__pycache__/
+**/*.pyc
+
+# Dagster
+dagster_home/
 
 minio/
+app/pages/3_👩‍💻Chatbot.py
