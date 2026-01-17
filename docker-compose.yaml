@@ -11,7 +11,6 @@ services:
     command: [ "server", "/data", "--console-address", ":9001" ]
     volumes:
       - miniodata:/data
-      - miniodata:/data
     env_file:
       - .env
     networks:
@@ -147,8 +146,6 @@ services:
       retries: 5
     # volumes:
     #   - metabasedata:/metabase-data
-    # env_file:
-    #   - .env
     networks:
       - data_network
   
@@ -156,7 +153,6 @@ services:
     image: mysql:8.0
     container_name: mysql
     volumes:
-      - mysql_h:/var/lib/mysql
       - mysql_h:/var/lib/mysql
       - ./dataset:/tmp/dataset
       - ./load_dataset_into_mysql:/tmp/load_dataset
@@ -190,7 +186,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=minio123
     # environment:#   - MLFLOW_S3_ENDPOINT_URL=http://minio:9000/#   - AWS_ACCESS_KEY_ID=minio#   - AWS_SECRET_ACCESS_KEY=minio123
     command: mlflow server --backend-store-uri mysql+pymysql://root:admin@mysql:3306/mlflowdb --default-artifact-root s3://mlflow/ --artifacts-destination s3://mlflow/ --host 0.0.0.0
-  
 
   mariadb:
     image: mariadb:10.5.16
@@ -220,14 +215,12 @@ services:
     depends_on:
       - mariadb
       # - minio
-      # - minio
 
   de_psql:
     image: postgres:14-alpine
     container_name: de_psql
     hostname: de_psql
     volumes:
-      - postgres_data_h:/var/lib/postgresql/data
       - postgres_data_h:/var/lib/postgresql/data
       - ./pg_hba.conf:/tmp/pg_hba.conf
       # - ./load_dataset:/tmp/load_dataset
@@ -259,7 +252,6 @@ services:
       - ./docker_image/spark/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
     networks:
       - data_network
-  
 
   de_dagster_dagit:
     build:
@@ -314,7 +306,6 @@ services:
     volumes:
       - ./etl_pipeline:/opt/dagster/app/etl_pipeline
       - ./etl_pipeline/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
-      - ./etl_pipeline/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
     env_file:
       - .env
     expose:
@@ -359,4 +350,3 @@ volumes:
   miniodata: {}
   mariadb: {}
   # metabasedata: {}
-

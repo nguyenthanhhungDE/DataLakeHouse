@@ -16,12 +16,8 @@ CREATE TABLE product_category_name_translation
 -- #    geolocation_state VARCHAR(64) NOT NULL, 
 -- #    PRIMARY KEY (geolocation_zip_code_prefix)
 -- #);
-<<<<<<< HEAD
 CREATE TABLE geolocation
 (
-=======
-CREATE TABLE geolocation (
->>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
     geolocation_zip_code_prefix INT,
     geolocation_lat FLOAT ,
     geolocation_lng FLOAT ,
@@ -73,11 +69,7 @@ CREATE TABLE orders
     order_delivered_carrier_date date ,
     order_delivered_customer_date date ,
     order_estimated_delivery_date date ,
-<<<<<<< HEAD
     PRIMARY KEY (order_id),
-=======
-	PRIMARY KEY (order_id),
->>>>>>> 3505f1f5c86fece65068d55af2288d4a50d7eb0e
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
