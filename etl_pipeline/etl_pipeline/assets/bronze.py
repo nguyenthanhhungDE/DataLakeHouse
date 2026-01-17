@@ -14,6 +14,99 @@ import uuid
 COMPUTE_KIND = "Polars"
 LAYER = "bronze"
 
+import polars as pl
+from dagster import AssetExecutionContext, Output
+
+
+def fetch_incremental_data(
+    context: AssetExecutionContext,
+    base_query: str,
+    watermark_col: str = "last_update",
+    default_watermark: str = "1970-01-01T00:00:00",
+) -> tuple[pl.DataFrame, dict]:
+    """
+    Hàm helper xử lý logic Incremental Load dựa trên High Watermark.
+    """
+
+    # --- 1. Lấy Watermark cũ từ Metadata ---
+    asset_key = context.asset_key_for_output()
+    latest_event = context.instance.get_latest_materialization_events([asset_key]).get(
+        asset_key
+    )
+
+    current_watermark = default_watermark
+
+    if latest_event:
+        metadata = (
+            latest_event.dagster_event.event_specific_data.materialization.metadata
+        )
+        last_update_meta = metadata.get(
+            watermark_col
+        )  # Tìm key trong metadata khớp với tên cột
+
+        if last_update_meta:
+            try:
+                current_watermark = last_update_meta.value
+                context.log.info(
+                    f"💦 Watermark cũ ({watermark_col}): {current_watermark}"
+                )
+            except (ValueError, AttributeError):
+                context.log.warning("⚠️ Giá trị last_update không hợp lệ, dùng default.")
+        else:
+            context.log.info(
+                "ℹ️ Không tìm thấy watermark trong metadata, chạy Full Load."
+            )
+    else:
+        context.log.info("ℹ️ Chưa có lần chạy trước, chạy Full Load.")
+
+    # --- 2. Xây dựng Query ---
+    # Sử dụng Subquery để đảm bảo logic query gốc không bị sai lệch khi thêm WHERE
+    if current_watermark != default_watermark:
+        # Incremental: Bọc query gốc và thêm điều kiện lọc
+        final_query = f"""
+            SELECT * FROM ({base_query}) AS subquery 
+            WHERE {watermark_col} > '{current_watermark}'
+            ORDER BY {watermark_col} ASC
+        """
+        context.log.info(f"🚀 Chế độ: INCREMENTAL LOAD > {current_watermark}")
+    else:
+        # Full Load
+        final_query = f"{base_query} ORDER BY {watermark_col} ASC"
+        context.log.info("🚀 Chế độ: FULL LOAD")
+
+    # --- 3. Thực thi Query ---
+    # Giả định context.resources.mysql_io_manager có sẵn
+    df_data = context.resources.mysql_io_manager.extract_data(final_query)
+
+    # Cast cột watermark sang datetime để xử lý (nếu chưa phải)
+    if watermark_col in df_data.columns:
+        df_data = df_data.with_columns(pl.col(watermark_col).cast(pl.Datetime))
+
+    context.log.info(f"✅ Đã tải: {df_data.shape[0]} dòng.")
+
+    # --- 4. Tính toán Watermark mới ---
+    if not df_data.is_empty():
+        # Lấy max value của cột watermark
+        new_watermark_val = df_data[watermark_col].max()
+        # Convert sang ISO string để lưu vào Metadata (JSON serializable)
+        new_watermark = (
+            new_watermark_val.isoformat() if new_watermark_val else current_watermark
+        )
+    else:
+        # Nếu không có data mới, giữ nguyên watermark cũ
+        new_watermark = current_watermark
+        context.log.info("zzz Không có dữ liệu mới, giữ nguyên Watermark cũ.")
+
+    # --- 5. Chuẩn bị Metadata ---
+    metadata = {
+        "row_count": df_data.shape[0],
+        "columns": df_data.columns,
+        watermark_col: new_watermark,  # Key metadata trùng tên cột để dễ tái sử dụng
+        "mode": "incremental" if current_watermark != default_watermark else "full",
+    }
+
+    return df_data, metadata
+
 
 # genre from my_sql
 @asset(
@@ -47,75 +140,19 @@ def bronze_customer(context) -> Output[pl.DataFrame]:
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
     key_prefix=["bronze", "seller"],
-    key_prefix=["bronze", "seller"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
 # Extract data từ mysql
 def bronze_seller(context) -> Output[pl.DataFrame]:
+    # Chỉ cần định nghĩa câu SELECT cơ bản (không cần WHERE last_update)
+    base_query = "SELECT * FROM sellers"
 
-    # Lấy watermark cũ từ metadata (last_update)
-    asset_key = context.asset_key_for_output()
-    latest_materialization_event = context.instance.get_latest_materialization_events(
-        [asset_key]
-    ).get(asset_key)
-
-    watermark = "1970-01-01T00:00:00"  # Mặc định thời gian rất cũ
-    if latest_materialization_event:
-        materialization = (
-            latest_materialization_event.dagster_event.event_specific_data.materialization
-        )
-        metadata = materialization.metadata
-        last_update = metadata.get("last_update")
-        if last_update:
-            try:
-                watermark = last_update.value  # Chuỗi ISO datetime
-                context.log.info(f"Watermark cũ (last_update): {watermark}")
-            except (ValueError, AttributeError):
-                context.log.warning(
-                    "Giá trị last_update không hợp lệ, dùng watermark mặc định"
-                )
-        else:
-            context.log.info(
-                "Không tìm thấy last_update trong metadata, sẽ lấy full load."
-            )
-    else:
-        context.log.info("Không có materialization trước, sẽ lấy full load.")
-
-    if watermark != "1970-01-01T00:00:00":
-        # Incremental load với last_update
-        query = f"""
-            SELECT * FROM sellers 
-            WHERE last_update > '{watermark}'
-            ORDER BY last_update ASC;
-        """
-        context.log.info(f"Incremental load từ last_update > {watermark}")
-    else:
-        # Full load lần đầu
-        query = "SELECT * FROM sellers ORDER BY seller_id ASC;"
-        context.log.info("Full load lần đầu tiên hoặc không có cột last_update")
-
-    # query = "SELECT * FROM sellers;"
-    df_data = context.resources.mysql_io_manager.extract_data(query)
-    context.log.info(f"Table extracted with shape: {query}")
-    context.log.info(f"Table extracted with shape: {df_data.shape}")
-    context.log.info(f"Table extracted with shape: {df_data.columns}")
-    context.log.info(f"Table extracted with first 5 rows: {df_data.head().to_dict()}")
-    # Đảm bảo cột last_updated là datetime
-    df_data = df_data.with_columns(pl.col("last_update").cast(pl.Datetime))
-
-    # Tìm watermark mới (max last_updated)
-    new_watermark = df_data["last_update"].max().isoformat()
+    # Gọi hàm helper
+    df, meta = fetch_incremental_data(context, base_query, watermark_col="last_update")
 
     return Output(
-        value=df_data,
-        metadata={
-            "table": "sellers",
-            "row_count": df_data.shape[0],
-            "column_count": df_data.shape[1],
-            "columns": df_data.columns,
-            "last_update": new_watermark,
-        },
+        value=df, metadata={"table": "sellers", **meta}  # Merge metadata từ helper vào
     )
 
 
@@ -124,7 +161,6 @@ def bronze_seller(context) -> Output[pl.DataFrame]:
     description="Load table 'products' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "product"],
     key_prefix=["bronze", "product"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
@@ -152,7 +188,6 @@ def bronze_product(context) -> Output[pl.DataFrame]:
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
     key_prefix=["bronze", "order"],
-    key_prefix=["bronze", "order"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -178,7 +213,6 @@ def bronze_order(context) -> Output[pl.DataFrame]:
     description="Load table 'order_items' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "orderitem"],
     key_prefix=["bronze", "orderitem"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
@@ -206,7 +240,6 @@ def bronze_order_item(context) -> Output[pl.DataFrame]:
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
     key_prefix=["bronze", "payment"],
-    key_prefix=["bronze", "payment"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
 )
@@ -232,7 +265,6 @@ def bronze_payment(context) -> Output[pl.DataFrame]:
     description="Load table 'order_reviews' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "orderreview"],
     key_prefix=["bronze", "orderreview"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
@@ -265,7 +297,6 @@ def bronze_order_review(context) -> Output[pl.DataFrame]:
     description="Load table 'product_category_name_translation' from MySQL database as polars DataFrame, and save to minIO",
     io_manager_key="minio_io_manager",
     required_resource_keys={"mysql_io_manager"},
-    key_prefix=["bronze", "productcategory"],
     key_prefix=["bronze", "productcategory"],
     compute_kind=COMPUTE_KIND,
     group_name=LAYER,
@@ -511,13 +542,17 @@ def generate_mysql_data(context) -> Output[None]:
             self.log = log
 
     # Insert lookup tables
-    # mysql.insert_output(
-    #     _DummyCtx("product_category_name_translation", context.log),
-    #     to_pl(pd.DataFrame({
-    #         "product_category_name": categories,
-    #         "product_category_name_english": [c.title() for c in categories],
-    #     })),
-    # )
+    mysql.insert_output(
+        _DummyCtx("product_category_name_translation", context.log),
+        to_pl(
+            pd.DataFrame(
+                {
+                    "product_category_name": categories,
+                    "product_category_name_english": [c.title() for c in categories],
+                }
+            )
+        ),
+    )
 
     mysql.insert_output(
         _DummyCtx("geolocation", context.log),
