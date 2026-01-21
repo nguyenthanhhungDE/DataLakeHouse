@@ -12,6 +12,9 @@ from pyspark.sql.functions import col, lit, current_timestamp
 from delta.tables import DeltaTable
 from pyspark.sql.functions import col, round, concat, md5, lit
 
+from dagster import asset_check, AssetCheckResult
+
+
 # Import resource
 from ..resources.spark_io_manager import get_spark_session
 from .etl_job.insert_job_log import insert_job_log
@@ -229,6 +232,48 @@ def silver_cleaned_seller(context, silver_stg_seller: DataFrame):
         mysql_key="seller_id",  # Tên cột ID trong MySQL
         logger=context.log,  # Logger để hiện UI đẹp
     )
+
+
+@asset_check(
+    asset=silver_cleaned_customer, description="Check data quality: ID must not be Null"
+)
+def check_customer_id_not_null(context):
+    # 1. Lấy Config (Giả sử bạn load từ biến môi trường hoặc file config chung)
+    # Nếu bạn dùng resource config phức tạp, cần extract từ context.
+    # Ở đây mình ví dụ config đơn giản để init spark.
+    spark_config = {
+        "endpoint_url": "minio:9000",
+        "minio_access_key": "admin",
+        "minio_secret_key": "password",
+        # ... các config khác
+    }
+
+    # Tạo Run ID giả lập cho session check
+    check_run_id = f"check_cust_{context.run_id[:8]}"
+
+    # 2. Mở Spark Session MỚI (Session của Asset cũ đã đóng rồi nên OK)
+    with get_spark_session(spark_config, run_id=check_run_id) as spark:
+
+        # 3. Đọc dữ liệu: Dùng spark.table để chắc chắn đọc đúng bảng vừa ghi
+        # Thay vì .load("path"), ta dùng .table("tên_bảng")
+        df = spark.table("silver.clean_customer")
+
+        # 4. Logic kiểm tra
+        total_rows = df.count()
+        null_count = df.filter("customer_id IS NULL").count()
+
+        # Log ra UI cho dễ nhìn
+        context.log.info(f"🔍 Checked {total_rows} rows. Found {null_count} null IDs.")
+
+        # 5. Trả về kết quả
+        return AssetCheckResult(
+            passed=(null_count == 0),
+            metadata={
+                "null_row_count": null_count,
+                "total_rows": total_rows,
+                "target_table": "silver.clean_customer",
+            },
+        )
 
 
 # ==============================================================================
