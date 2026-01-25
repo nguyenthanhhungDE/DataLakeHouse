@@ -100,7 +100,6 @@ class MinIOIOManager(IOManager):
                 client.fget_object(bucket_name, key_name, tmp_file_path)
                 df_data = pl.read_parquet(tmp_file_path)
                 context.log.info(
-                    f"(MinIO load_input) Got polars dataframe with shape: {df_data.shape}"
                 )
                 os.remove(tmp_file_path)
                 return df_data

@@ -1,9 +1,6 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, max as spark_max, current_timestamp, lit
 
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, max as spark_max, current_timestamp, lit
-
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, lit, current_timestamp
@@ -157,15 +154,6 @@ def calculate_merge_metrics(
         return -1, -1
 
 
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, lit, current_timestamp
-from delta.tables import DeltaTable
-
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, lit, current_timestamp
-from delta.tables import DeltaTable
-
-
 # ==============================================================================
 # HÀM 1: GET SOURCE KEYS (CÓ LOGGER)
 # ==============================================================================
@@ -173,7 +161,7 @@ def get_source_keys_jdbc(
     spark: SparkSession,
     config: dict,
     target_col_name: str = None,
-    logger=None,  # <--- THÊM THAM SỐ NÀY
+    logger=None,
 ):
     """
     Kết nối MySQL qua JDBC và lấy danh sách Key.

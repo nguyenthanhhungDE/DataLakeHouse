@@ -27,7 +27,6 @@ class MySQLIOManager(IOManager):
     def load_input(self, context: InputContext):
         pass
 
-    # --- SỬA LẠI HÀM NÀY ---
     def extract_data(self, sql: str) -> pl.DataFrame:
         """
         Extract data from MySQL database as polars DataFrame

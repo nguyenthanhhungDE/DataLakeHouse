@@ -18,7 +18,7 @@ LAYER = "gold"
 @asset(
     description="Split book table to get basic info",
     ins={
-        "silver_stg_customer": AssetIn(
+        "silver_cleaned_customer": AssetIn(
             key_prefix=["silver", "customer"],
         ),
         "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),
@@ -28,7 +28,9 @@ LAYER = "gold"
     compute_kind="PySpark",
     group_name="gold",
 )
-def dim_customer(context, silver_stg_customer, silver_cleaned_geolocation: DataFrame):
+def dim_customer(
+    context, silver_cleaned_customer, silver_cleaned_geolocation: DataFrame
+):
     """
     Split book table to get basic info
     """
@@ -41,7 +43,7 @@ def dim_customer(context, silver_stg_customer, silver_cleaned_geolocation: DataF
     with get_spark_session(config, str(context.run.run_id).split("-")[0]) as spark:
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS gold")
 
-        customer = silver_stg_customer
+        customer = silver_cleaned_customer
         geolocation = silver_cleaned_geolocation
         joined_df = customer.join(
             geolocation,
