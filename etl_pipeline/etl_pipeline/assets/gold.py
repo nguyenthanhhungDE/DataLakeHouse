@@ -18,7 +18,7 @@ LAYER = "gold"
 @asset(
     description="Split book table to get basic info",
     ins={
-        "silver_stg_customer": AssetIn(
+        "silver_cleaned_customer": AssetIn(
             key_prefix=["silver", "customer"],
         ),
         "silver_cleaned_geolocation": AssetIn(key_prefix=["silver", "geolocation"]),

@@ -33,6 +33,7 @@ def fetch_incremental_data(
     latest_event = context.instance.get_latest_materialization_events([asset_key]).get(
         asset_key
     )
+    # latest_event = None
 
     current_watermark = default_watermark
 
@@ -73,7 +74,7 @@ def fetch_incremental_data(
         # Full Load
         final_query = f"{base_query} ORDER BY {watermark_col} ASC"
         context.log.info("🚀 Chế độ: FULL LOAD")
-
+    context.log.info(f"🚀 QUERY > {final_query}")
     # --- 3. Thực thi Query ---
     # Giả định context.resources.mysql_io_manager có sẵn
     df_data = context.resources.mysql_io_manager.extract_data(final_query)
