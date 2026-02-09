@@ -68,12 +68,6 @@ def get_spark_session(config, run_id="Spark IO Manager"):
 
     except Exception as e:
         raise Exception(f"Error while creating spark session: {e}")
-    finally:
-        # Đảm bảo luôn đóng session để trả tài nguyên, ngay cả khi code lỗi
-        try:
-            spark.stop()
-        except:
-            pass
 
 
 from dagster import IOManager, InputContext, OutputContext
@@ -94,7 +88,7 @@ class SparkIOManager(IOManager):
             return False
 
     def _get_table_info(self, context):
-        """Hàm Helper sinh tên bảng """
+        """Hàm Helper sinh tên bảng"""
         asset_key = context.asset_key.path
         layer = asset_key[0]
         original_name = asset_key[-1]
@@ -159,6 +153,12 @@ class SparkIOManager(IOManager):
             return spark.read.table(full_table_name)
 
     def handle_output(self, context, obj):
+        if obj is None:
+            context.log.info(
+                f"🛑 Output là None (do Asset '{context.asset_key.path[-1]}' trả về rỗng). IO Manager sẽ bỏ qua bước ghi."
+            )
+            return  # Thoát ngay, không làm gì cả
+
         asset_key = context.asset_key.path
         layer = asset_key[0]
 

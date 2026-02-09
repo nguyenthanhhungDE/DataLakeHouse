@@ -1,4 +1,3 @@
-
 from dagster import asset, AssetIn, Output
 import os
 import polars as pl
@@ -52,6 +51,7 @@ def _process_staging_load(
     with get_spark_session(config, run_id) as spark:
         # 0. Audit Log
         insert_job_log(
+            context=context,
             spark=spark,
             job_name=f"silver_{asset_key}",
             layer="silver",
@@ -63,6 +63,8 @@ def _process_staging_load(
             owner="hung.nguyen",
             description=f"Ingest & Filter raw data from {source_name} to Staging History",
         )
+        spark.sql("CREATE DATABASE IF NOT EXISTS metadata")
+        spark.sql("CREATE DATABASE IF NOT EXISTS silver")
 
         # 1. Convert Data: Polars -> Spark
         pandas_df = bronze_df.to_pandas()
@@ -143,6 +145,13 @@ def _process_staging_load(
     compute_kind=COMPUTE_KIND,
 )
 def silver_stg_customer(context, bronze_customer: pl.DataFrame):
+        # 👇 THÊM ĐOẠN CHECK NÀY VÀO ĐẦU HÀM
+    if bronze_customer.height == 0:
+        context.log.warning("⚠️ Bảng 'bronze_seller' không có dữ liệu! Bỏ qua xử lý.")
+        return Output(
+            value=None, metadata={"status": "skipped", "reason": "empty_input"}
+        )
+    
     return _process_staging_load(
         context,
         bronze_customer,
@@ -163,6 +172,13 @@ def silver_stg_customer(context, bronze_customer: pl.DataFrame):
     compute_kind=COMPUTE_KIND,
 )
 def silver_stg_seller(context, bronze_seller: pl.DataFrame):
+    # 👇 THÊM ĐOẠN CHECK NÀY VÀO ĐẦU HÀM
+    if bronze_seller.height == 0:
+        context.log.warning("⚠️ Bảng 'bronze_seller' không có dữ liệu! Bỏ qua xử lý.")
+        return Output(
+            value=None, metadata={"status": "skipped", "reason": "empty_input"}
+        )
+
     return _process_staging_load(
         context,
         bronze_seller,

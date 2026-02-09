@@ -2,8 +2,11 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit
 
+from dagster import OpExecutionContext
+
 
 def insert_job_log(
+    context: OpExecutionContext,
     spark,
     job_name: str,
     layer: str,
@@ -15,11 +18,18 @@ def insert_job_log(
     owner: str,
     description: str,
 ):
+    print("🚀 BẮT ĐẦU GỌI HÀM insert_job_log...")
+    context.log.info(f"🚀 BẮT ĐẦU GỌI HÀM insert_job_log cho {job_name}...")
     now = datetime.now()
 
     # --- BƯỚC 1: ĐẢM BẢO DATABASE VÀ TABLE TỒN TẠI ---
     # Tạo database nếu chưa có
+    # context.log.info("💣 Đang DROP database cũ (Hard Reset)...")
+    # spark.sql("DROP DATABASE IF EXISTS metadata CASCADE")  # ✅ ĐÚNG
+    # spark.sql("DROP DATABASE IF EXISTS silver CASCADE")  # ✅ ĐÚNG
+    # spark.sql("DROP TABLE IF EXISTS metadata.etl_job")
     spark.sql("CREATE DATABASE IF NOT EXISTS metadata")
+    spark.sql("CREATE DATABASE IF NOT EXISTS silver")
 
     # Tạo bảng log nếu chưa có (Schema khớp với dữ liệu bên dưới)
     spark.sql(

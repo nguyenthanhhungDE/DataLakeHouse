@@ -18,6 +18,7 @@ def get_watermark_from_meta(
     """
     try:
         # 1. Đảm bảo bảng Metadata tồn tại (Idempotent)
+        spark.sql("CREATE DATABASE IF NOT EXISTS silver")
         spark.sql(
             f"""
             CREATE TABLE IF NOT EXISTS {meta_table} (
