@@ -99,8 +99,8 @@ class MinIOIOManager(IOManager):
                 context.log.info(f"(MinIO load_input) from key_name: {key_name}")
                 client.fget_object(bucket_name, key_name, tmp_file_path)
                 df_data = pl.read_parquet(tmp_file_path)
-                context.log.info(
-                )
+                # context.log.info(
+                # )
                 os.remove(tmp_file_path)
                 return df_data
         except Exception as e:
